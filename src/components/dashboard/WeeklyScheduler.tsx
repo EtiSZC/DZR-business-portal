@@ -76,7 +76,10 @@ export const WeeklyScheduler = () => {
 
   const handleDragOver = (e: React.DragEvent, day: string, hour: number) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
+    e.stopPropagation();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = "copy";
+    }
     const slotKey = `${day}-${hour}`;
     setDragOverSlot(slotKey);
     console.log("🎯 Drag over slot:", slotKey);
@@ -84,11 +87,16 @@ export const WeeklyScheduler = () => {
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
-    setDragOverSlot(null);
+    e.stopPropagation();
+    // Only clear if we're actually leaving the element
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragOverSlot(null);
+    }
   };
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
   };
 
   const handleDrop = async (e: React.DragEvent, day: string, hour: number) => {
