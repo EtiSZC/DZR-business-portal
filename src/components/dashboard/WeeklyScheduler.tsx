@@ -275,10 +275,22 @@ export const WeeklyScheduler = () => {
                       className={`p-1 border-r last:border-r-0 min-h-[40px] relative transition-colors cursor-pointer ${
                         isDragOver ? 'bg-primary/20 border-2 border-primary border-dashed' : 'hover:bg-muted/20'
                       } ${draggedPlaylist ? 'border border-dashed border-muted-foreground/30' : ''}`}
-                      onDragOver={(e) => handleDragOver(e, day, hour)}
-                      onDragLeave={handleDragLeave}
-                      onDragEnter={handleDragEnter}
-                      onDrop={(e) => handleDrop(e, day, hour)}
+                      onDragOver={(e) => {
+                        console.log("🔥 DRAGOVER EVENT FIRED for", day, hour);
+                        handleDragOver(e, day, hour);
+                      }}
+                      onDragLeave={(e) => {
+                        console.log("🔥 DRAGLEAVE EVENT FIRED");
+                        handleDragLeave(e);
+                      }}
+                      onDragEnter={(e) => {
+                        console.log("🔥 DRAGENTER EVENT FIRED");
+                        handleDragEnter(e);
+                      }}
+                      onDrop={(e) => {
+                        console.log("🔥 DROP EVENT FIRED!");
+                        handleDrop(e, day, hour);
+                      }}
                       onClick={() => {
                         if (draggedPlaylist) {
                           console.log("🎯 Click to place fallback triggered");
