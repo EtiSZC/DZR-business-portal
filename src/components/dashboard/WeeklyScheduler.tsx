@@ -281,13 +281,15 @@ export const WeeklyScheduler = () => {
                     >
                       {scheduledItem && isFirstHour && playlist && (
                         <div
-                          className={`absolute inset-1 ${playlist.color} bg-opacity-20 border-l-4 border-opacity-100 rounded p-1 group`}
+                          className={`absolute inset-1 rounded p-1 group border-l-4 text-xs ${playlist.color} bg-opacity-30 border-opacity-100`}
                           style={{ 
                             height: `${Math.ceil(scheduledItem.duration / 60) * 40 - 4}px`,
+                            backgroundColor: `var(--${playlist.color.replace('bg-', '')}-500, hsl(var(--primary)))`,
+                            borderLeftColor: `var(--${playlist.color.replace('bg-', '')}-600, hsl(var(--primary)))`
                           }}
                         >
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-medium text-foreground truncate">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-foreground truncate text-xs">
                               {playlist.name}
                             </span>
                             <Button
@@ -299,9 +301,9 @@ export const WeeklyScheduler = () => {
                               <X className="h-3 w-3" />
                             </Button>
                           </div>
-                          <Badge variant="secondary" className="text-xs mt-1">
+                          <div className="text-xs text-muted-foreground mt-1">
                             {Math.floor(scheduledItem.duration / 60)}h {scheduledItem.duration % 60}m
-                          </Badge>
+                          </div>
                         </div>
                       )}
                     </div>
