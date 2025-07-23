@@ -65,21 +65,36 @@ export const WeeklyScheduler = () => {
 
   const getPlaylistById = (id: number) => playlists.find(p => p.id === id);
 
-  const handleDragStart = (playlistId: number) => {
+  const handleDragStart = (e: React.DragEvent, playlistId: number) => {
+    console.log("Drag started for playlist:", playlistId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", playlistId.toString());
     setDraggedPlaylist(playlistId);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
   };
 
   const handleDrop = async (e: React.DragEvent, day: string, hour: number) => {
     e.preventDefault();
+    console.log("Drop attempted:", { day, hour, draggedPlaylist });
     
-    if (!draggedPlaylist) return;
+    if (!draggedPlaylist) {
+      console.log("No dragged playlist found");
+      return;
+    }
 
     const playlist = getPlaylistById(draggedPlaylist);
-    if (!playlist) return;
+    if (!playlist) {
+      console.log("Playlist not found");
+      return;
+    }
 
     // Check for conflicts
     const durationInHours = Math.ceil(playlist.duration / 60);
@@ -95,6 +110,13 @@ export const WeeklyScheduler = () => {
       return;
     }
 
+    console.log("Inserting into database:", {
+      playlist_id: draggedPlaylist,
+      day,
+      hour,
+      duration: playlist.duration,
+    });
+
     const { data, error } = await supabase
       .from('scheduled_items')
       .insert({
@@ -108,10 +130,11 @@ export const WeeklyScheduler = () => {
 
     if (error) {
       toast.error("Failed to schedule playlist");
-      console.error(error);
+      console.error("Database error:", error);
       return;
     }
 
+    console.log("Successfully inserted:", data);
     setSchedule([...schedule, data]);
     setDraggedPlaylist(null);
     toast.success("Playlist scheduled successfully!");
@@ -158,7 +181,7 @@ export const WeeklyScheduler = () => {
                 key={playlist.id}
                 className="flex-shrink-0 w-48 cursor-move hover:shadow-lg transition-shadow"
                 draggable
-                onDragStart={() => handleDragStart(playlist.id)}
+                onDragStart={(e) => handleDragStart(e, playlist.id)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-3">
@@ -223,6 +246,7 @@ export const WeeklyScheduler = () => {
                       key={`${day}-${hour}`}
                       className="p-1 border-r last:border-r-0 min-h-[40px] relative hover:bg-muted/20 transition-colors"
                       onDragOver={handleDragOver}
+                      onDragEnter={handleDragEnter}
                       onDrop={(e) => handleDrop(e, day, hour)}
                     >
                       {scheduledItem && isFirstHour && playlist && (
