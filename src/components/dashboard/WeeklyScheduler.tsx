@@ -28,7 +28,7 @@ interface ScheduledItem {
 export const WeeklyScheduler = () => {
   const [schedule, setSchedule] = useState<ScheduledItem[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [draggedPlaylist, setDraggedPlaylist] = useState<number | null>(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<number | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
 
   useEffect(() => {
@@ -66,12 +66,17 @@ export const WeeklyScheduler = () => {
 
   const getPlaylistById = (id: number) => playlists.find(p => p.id === id);
 
+  const handlePlaylistSelect = (playlistId: number) => {
+    console.log("🎯 Playlist selected:", playlistId);
+    setSelectedPlaylist(selectedPlaylist === playlistId ? null : playlistId);
+  };
+
   const handleDragStart = (e: React.DragEvent, playlistId: number) => {
     console.log("🎯 Drag started for playlist:", playlistId);
     e.dataTransfer.effectAllowed = "copy";
     e.dataTransfer.setData("text/plain", playlistId.toString());
     e.dataTransfer.setData("application/json", JSON.stringify({ playlistId, type: "playlist" }));
-    setDraggedPlaylist(playlistId);
+    setSelectedPlaylist(playlistId);
   };
 
   const handleDragOver = (e: React.DragEvent, day: string, hour: number) => {
@@ -99,19 +104,18 @@ export const WeeklyScheduler = () => {
     e.stopPropagation();
   };
 
-  const handleDrop = async (e: React.DragEvent, day: string, hour: number) => {
-    e.preventDefault();
-    console.log("🎯 Drop event triggered!", { day, hour, draggedPlaylist });
+  const placePlaylist = async (day: string, hour: number) => {
+    console.log("🎯 Place playlist triggered!", { day, hour, selectedPlaylist });
     
-    if (!draggedPlaylist) {
-      console.log("❌ No dragged playlist found");
-      toast.error("No playlist selected for dropping");
+    if (!selectedPlaylist) {
+      console.log("❌ No playlist selected");
+      toast.error("Please select a playlist first");
       return;
     }
 
-    const playlist = getPlaylistById(draggedPlaylist);
+    const playlist = getPlaylistById(selectedPlaylist);
     if (!playlist) {
-      console.log("❌ Playlist not found for ID:", draggedPlaylist);
+      console.log("❌ Playlist not found for ID:", selectedPlaylist);
       toast.error("Playlist not found");
       return;
     }
@@ -129,12 +133,11 @@ export const WeeklyScheduler = () => {
     if (hasConflict) {
       console.log("❌ Time slot conflict detected");
       toast.error("Time slot conflict! Please choose a different time.");
-      setDraggedPlaylist(null);
       return;
     }
 
     const insertData = {
-      playlist_id: draggedPlaylist,
+      playlist_id: selectedPlaylist,
       day,
       hour,
       duration: playlist.duration,
@@ -157,12 +160,18 @@ export const WeeklyScheduler = () => {
 
       console.log("✅ Successfully inserted:", data);
       setSchedule([...schedule, data]);
-      setDraggedPlaylist(null);
+      setSelectedPlaylist(null);
       toast.success(`${playlist.name} scheduled for ${day} at ${hour}:00!`);
     } catch (err) {
       console.error("❌ Unexpected error:", err);
       toast.error("Unexpected error occurred");
     }
+  };
+
+  const handleDrop = async (e: React.DragEvent, day: string, hour: number) => {
+    e.preventDefault();
+    console.log("🔥 DROP EVENT FIRED!");
+    await placePlaylist(day, hour);
   };
 
   const removeScheduledItem = async (id: string) => {
@@ -204,9 +213,12 @@ export const WeeklyScheduler = () => {
             {playlists.map((playlist) => (
               <Card
                 key={playlist.id}
-                className="flex-shrink-0 w-48 cursor-move hover:shadow-lg transition-shadow"
+                className={`flex-shrink-0 w-48 cursor-pointer hover:shadow-lg transition-all ${
+                  selectedPlaylist === playlist.id ? 'ring-2 ring-primary bg-primary/5' : ''
+                }`}
                 draggable
                 onDragStart={(e) => handleDragStart(e, playlist.id)}
+                onClick={() => handlePlaylistSelect(playlist.id)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-3">
@@ -218,6 +230,9 @@ export const WeeklyScheduler = () => {
                         {Math.floor(playlist.duration / 60)}h {playlist.duration % 60}m
                       </p>
                     </div>
+                    {selectedPlaylist === playlist.id && (
+                      <div className="text-primary text-xs font-medium">Selected</div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -274,7 +289,7 @@ export const WeeklyScheduler = () => {
                       key={`${day}-${hour}`}
                       className={`p-1 border-r last:border-r-0 min-h-[40px] relative transition-colors cursor-pointer ${
                         isDragOver ? 'bg-primary/20 border-2 border-primary border-dashed' : 'hover:bg-muted/20'
-                      } ${draggedPlaylist ? 'border border-dashed border-muted-foreground/30' : ''}`}
+                      } ${selectedPlaylist ? 'border border-dashed border-muted-foreground/30' : ''}`}
                       onDragOver={(e) => {
                         console.log("🔥 DRAGOVER EVENT FIRED for", day, hour);
                         handleDragOver(e, day, hour);
@@ -292,12 +307,12 @@ export const WeeklyScheduler = () => {
                         handleDrop(e, day, hour);
                       }}
                       onClick={() => {
-                        if (draggedPlaylist) {
-                          console.log("🎯 Click to place fallback triggered");
-                          handleDrop({ preventDefault: () => {} } as any, day, hour);
+                        if (selectedPlaylist) {
+                          console.log("🎯 Click to place triggered");
+                          placePlaylist(day, hour);
                         }
                       }}
-                      title={draggedPlaylist ? `Click to place ${getPlaylistById(draggedPlaylist)?.name} here` : `${day} ${hour}:00`}
+                      title={selectedPlaylist ? `Click to place ${getPlaylistById(selectedPlaylist)?.name} here` : `${day} ${hour}:00`}
                     >
                       {scheduledItem && isFirstHour && playlist && (
                         <div
