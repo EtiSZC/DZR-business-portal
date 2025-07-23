@@ -14,7 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      playlists: {
+        Row: {
+          color: string
+          created_at: string
+          duration: number
+          id: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          duration?: number
+          id?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          duration?: number
+          id?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scheduled_items: {
+        Row: {
+          created_at: string
+          day: string
+          duration: number
+          hour: number
+          id: string
+          playlist_id: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          duration: number
+          hour: number
+          id?: string
+          playlist_id: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          duration?: number
+          hour?: number
+          id?: string
+          playlist_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_items_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
