@@ -66,7 +66,7 @@ export const WeeklyScheduler = () => {
   const getPlaylistById = (id: number) => playlists.find(p => p.id === id);
 
   const handleDragStart = (e: React.DragEvent, playlistId: number) => {
-    console.log("Drag started for playlist:", playlistId);
+    console.log("🎯 Drag started for playlist:", playlistId);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", playlistId.toString());
     setDraggedPlaylist(playlistId);
@@ -83,18 +83,22 @@ export const WeeklyScheduler = () => {
 
   const handleDrop = async (e: React.DragEvent, day: string, hour: number) => {
     e.preventDefault();
-    console.log("Drop attempted:", { day, hour, draggedPlaylist });
+    console.log("🎯 Drop event triggered!", { day, hour, draggedPlaylist });
     
     if (!draggedPlaylist) {
-      console.log("No dragged playlist found");
+      console.log("❌ No dragged playlist found");
+      toast.error("No playlist selected for dropping");
       return;
     }
 
     const playlist = getPlaylistById(draggedPlaylist);
     if (!playlist) {
-      console.log("Playlist not found");
+      console.log("❌ Playlist not found for ID:", draggedPlaylist);
+      toast.error("Playlist not found");
       return;
     }
+
+    console.log("✅ Found playlist:", playlist);
 
     // Check for conflicts
     const durationInHours = Math.ceil(playlist.duration / 60);
@@ -105,39 +109,42 @@ export const WeeklyScheduler = () => {
     );
 
     if (hasConflict) {
+      console.log("❌ Time slot conflict detected");
       toast.error("Time slot conflict! Please choose a different time.");
       setDraggedPlaylist(null);
       return;
     }
 
-    console.log("Inserting into database:", {
+    const insertData = {
       playlist_id: draggedPlaylist,
       day,
       hour,
       duration: playlist.duration,
-    });
+    };
 
-    const { data, error } = await supabase
-      .from('scheduled_items')
-      .insert({
-        playlist_id: draggedPlaylist,
-        day,
-        hour,
-        duration: playlist.duration,
-      })
-      .select()
-      .single();
+    console.log("🚀 Attempting to insert into database:", insertData);
 
-    if (error) {
-      toast.error("Failed to schedule playlist");
-      console.error("Database error:", error);
-      return;
+    try {
+      const { data, error } = await supabase
+        .from('scheduled_items')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("❌ Database error:", error);
+        toast.error(`Failed to schedule playlist: ${error.message}`);
+        return;
+      }
+
+      console.log("✅ Successfully inserted:", data);
+      setSchedule([...schedule, data]);
+      setDraggedPlaylist(null);
+      toast.success(`${playlist.name} scheduled for ${day} at ${hour}:00!`);
+    } catch (err) {
+      console.error("❌ Unexpected error:", err);
+      toast.error("Unexpected error occurred");
     }
-
-    console.log("Successfully inserted:", data);
-    setSchedule([...schedule, data]);
-    setDraggedPlaylist(null);
-    toast.success("Playlist scheduled successfully!");
   };
 
   const removeScheduledItem = async (id: string) => {
