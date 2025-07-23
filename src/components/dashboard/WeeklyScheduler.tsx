@@ -68,8 +68,9 @@ export const WeeklyScheduler = () => {
 
   const handleDragStart = (e: React.DragEvent, playlistId: number) => {
     console.log("🎯 Drag started for playlist:", playlistId);
-    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.effectAllowed = "copy";
     e.dataTransfer.setData("text/plain", playlistId.toString());
+    e.dataTransfer.setData("application/json", JSON.stringify({ playlistId, type: "playlist" }));
     setDraggedPlaylist(playlistId);
   };
 
@@ -263,13 +264,20 @@ export const WeeklyScheduler = () => {
                   return (
                     <div
                       key={`${day}-${hour}`}
-                      className={`p-1 border-r last:border-r-0 min-h-[40px] relative transition-colors ${
+                      className={`p-1 border-r last:border-r-0 min-h-[40px] relative transition-colors cursor-pointer ${
                         isDragOver ? 'bg-primary/20 border-2 border-primary border-dashed' : 'hover:bg-muted/20'
-                      }`}
+                      } ${draggedPlaylist ? 'border border-dashed border-muted-foreground/30' : ''}`}
                       onDragOver={(e) => handleDragOver(e, day, hour)}
                       onDragLeave={handleDragLeave}
                       onDragEnter={handleDragEnter}
                       onDrop={(e) => handleDrop(e, day, hour)}
+                      onClick={() => {
+                        if (draggedPlaylist) {
+                          console.log("🎯 Click to place fallback triggered");
+                          handleDrop({ preventDefault: () => {} } as any, day, hour);
+                        }
+                      }}
+                      title={draggedPlaylist ? `Click to place ${getPlaylistById(draggedPlaylist)?.name} here` : `${day} ${hour}:00`}
                     >
                       {scheduledItem && isFirstHour && playlist && (
                         <div
