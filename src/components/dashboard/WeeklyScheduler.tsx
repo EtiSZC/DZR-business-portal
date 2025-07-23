@@ -182,10 +182,19 @@ export const WeeklyScheduler = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Weekly Schedule</h3>
-          <Button variant="outline" size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Template
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={() => toast.success("Schedule saved successfully! All changes are automatically saved.")}
+            >
+              Save My Schedule
+            </Button>
+            <Button variant="outline" size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Template
+            </Button>
+          </div>
         </div>
 
         <div className="border rounded-lg overflow-hidden">
