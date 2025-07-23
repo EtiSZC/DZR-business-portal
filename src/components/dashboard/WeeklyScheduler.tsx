@@ -1,52 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Clock, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const hours = Array.from({ length: 24 }, (_, i) => i);
 
-const samplePlaylists = [
-  { id: 1, name: "Morning Coffee", duration: "2h", color: "bg-blue-500" },
-  { id: 2, name: "Lunch Rush", duration: "3h", color: "bg-green-500" },
-  { id: 3, name: "Afternoon Chill", duration: "4h", color: "bg-purple-500" },
-  { id: 4, name: "Dinner Jazz", duration: "3h", color: "bg-orange-500" },
-  { id: 5, name: "Evening Vibes", duration: "2h", color: "bg-pink-500" },
-  { id: 6, name: "Late Night", duration: "3h", color: "bg-indigo-500" },
-];
+interface Playlist {
+  id: number;
+  name: string;
+  duration: number;
+  color: string;
+}
 
 interface ScheduledItem {
   id: string;
-  playlistId: number;
+  playlist_id: number;
   day: string;
   hour: number;
   duration: number;
 }
 
 export const WeeklyScheduler = () => {
-  const [schedule, setSchedule] = useState<ScheduledItem[]>([
-    {
-      id: "1",
-      playlistId: 1,
-      day: "Monday",
-      hour: 8,
-      duration: 2,
-    },
-    {
-      id: "2",
-      playlistId: 2,
-      day: "Monday",
-      hour: 12,
-      duration: 3,
-    },
-  ]);
-
+  const [schedule, setSchedule] = useState<ScheduledItem[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [draggedPlaylist, setDraggedPlaylist] = useState<number | null>(null);
 
-  const getPlaylistById = (id: number) => samplePlaylists.find(p => p.id === id);
+  useEffect(() => {
+    loadPlaylists();
+    loadSchedule();
+  }, []);
+
+  const loadPlaylists = async () => {
+    const { data, error } = await supabase
+      .from('playlists')
+      .select('*');
+    
+    if (error) {
+      toast.error("Failed to load playlists");
+      console.error(error);
+      return;
+    }
+    
+    setPlaylists(data || []);
+  };
+
+  const loadSchedule = async () => {
+    const { data, error } = await supabase
+      .from('scheduled_items')
+      .select('*');
+    
+    if (error) {
+      toast.error("Failed to load schedule");
+      console.error(error);
+      return;
+    }
+    
+    setSchedule(data || []);
+  };
+
+  const getPlaylistById = (id: number) => playlists.find(p => p.id === id);
 
   const handleDragStart = (playlistId: number) => {
     setDraggedPlaylist(playlistId);
@@ -56,7 +73,7 @@ export const WeeklyScheduler = () => {
     e.preventDefault();
   };
 
-  const handleDrop = (e: React.DragEvent, day: string, hour: number) => {
+  const handleDrop = async (e: React.DragEvent, day: string, hour: number) => {
     e.preventDefault();
     
     if (!draggedPlaylist) return;
@@ -65,11 +82,11 @@ export const WeeklyScheduler = () => {
     if (!playlist) return;
 
     // Check for conflicts
-    const duration = parseInt(playlist.duration);
+    const durationInHours = Math.ceil(playlist.duration / 60);
     const hasConflict = schedule.some(item => 
       item.day === day && 
-      ((item.hour <= hour && item.hour + item.duration > hour) ||
-       (hour <= item.hour && hour + duration > item.hour))
+      ((item.hour <= hour && item.hour + Math.ceil(item.duration / 60) > hour) ||
+       (hour <= item.hour && hour + durationInHours > item.hour))
     );
 
     if (hasConflict) {
@@ -78,20 +95,40 @@ export const WeeklyScheduler = () => {
       return;
     }
 
-    const newItem: ScheduledItem = {
-      id: Date.now().toString(),
-      playlistId: draggedPlaylist,
-      day,
-      hour,
-      duration,
-    };
+    const { data, error } = await supabase
+      .from('scheduled_items')
+      .insert({
+        playlist_id: draggedPlaylist,
+        day,
+        hour,
+        duration: playlist.duration,
+      })
+      .select()
+      .single();
 
-    setSchedule([...schedule, newItem]);
+    if (error) {
+      toast.error("Failed to schedule playlist");
+      console.error(error);
+      return;
+    }
+
+    setSchedule([...schedule, data]);
     setDraggedPlaylist(null);
     toast.success("Playlist scheduled successfully!");
   };
 
-  const removeScheduledItem = (id: string) => {
+  const removeScheduledItem = async (id: string) => {
+    const { error } = await supabase
+      .from('scheduled_items')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast.error("Failed to remove playlist");
+      console.error(error);
+      return;
+    }
+
     setSchedule(schedule.filter(item => item.id !== id));
     toast.success("Playlist removed from schedule");
   };
@@ -100,7 +137,7 @@ export const WeeklyScheduler = () => {
     return schedule.find(item => 
       item.day === day && 
       hour >= item.hour && 
-      hour < item.hour + item.duration
+      hour < item.hour + Math.ceil(item.duration / 60)
     );
   };
 
@@ -116,7 +153,7 @@ export const WeeklyScheduler = () => {
         <h3 className="text-lg font-semibold">Available Playlists</h3>
         <ScrollArea className="w-full">
           <div className="flex space-x-4 pb-4">
-            {samplePlaylists.map((playlist) => (
+            {playlists.map((playlist) => (
               <Card
                 key={playlist.id}
                 className="flex-shrink-0 w-48 cursor-move hover:shadow-lg transition-shadow"
@@ -130,7 +167,7 @@ export const WeeklyScheduler = () => {
                       <p className="font-medium text-sm">{playlist.name}</p>
                       <p className="text-xs text-muted-foreground flex items-center">
                         <Clock className="w-3 h-3 mr-1" />
-                        {playlist.duration}
+                        {Math.floor(playlist.duration / 60)}h {playlist.duration % 60}m
                       </p>
                     </div>
                   </div>
@@ -170,7 +207,7 @@ export const WeeklyScheduler = () => {
                 {days.map((day) => {
                   const scheduledItem = getScheduledItem(day, hour);
                   const isFirstHour = isFirstHourOfItem(day, hour);
-                  const playlist = scheduledItem ? getPlaylistById(scheduledItem.playlistId) : null;
+                  const playlist = scheduledItem ? getPlaylistById(scheduledItem.playlist_id) : null;
 
                   return (
                     <div
@@ -183,8 +220,7 @@ export const WeeklyScheduler = () => {
                         <div
                           className={`absolute inset-1 ${playlist.color} bg-opacity-20 border-l-4 border-opacity-100 rounded p-1 group`}
                           style={{ 
-                            height: `${scheduledItem.duration * 40 - 4}px`,
-                            borderLeftColor: playlist.color.replace('bg-', '').replace('-500', '')
+                            height: `${Math.ceil(scheduledItem.duration / 60) * 40 - 4}px`,
                           }}
                         >
                           <div className="flex items-center justify-between text-xs">
@@ -201,7 +237,7 @@ export const WeeklyScheduler = () => {
                             </Button>
                           </div>
                           <Badge variant="secondary" className="text-xs mt-1">
-                            {scheduledItem.duration}h
+                            {Math.floor(scheduledItem.duration / 60)}h {scheduledItem.duration % 60}m
                           </Badge>
                         </div>
                       )}
