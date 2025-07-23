@@ -29,6 +29,7 @@ export const WeeklyScheduler = () => {
   const [schedule, setSchedule] = useState<ScheduledItem[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [draggedPlaylist, setDraggedPlaylist] = useState<number | null>(null);
+  const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
 
   useEffect(() => {
     loadPlaylists();
@@ -72,9 +73,17 @@ export const WeeklyScheduler = () => {
     setDraggedPlaylist(playlistId);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent, day: string, hour: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
+    const slotKey = `${day}-${hour}`;
+    setDragOverSlot(slotKey);
+    console.log("🎯 Drag over slot:", slotKey);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOverSlot(null);
   };
 
   const handleDragEnter = (e: React.DragEvent) => {
@@ -248,11 +257,17 @@ export const WeeklyScheduler = () => {
                   const isFirstHour = isFirstHourOfItem(day, hour);
                   const playlist = scheduledItem ? getPlaylistById(scheduledItem.playlist_id) : null;
 
+                  const slotKey = `${day}-${hour}`;
+                  const isDragOver = dragOverSlot === slotKey;
+
                   return (
                     <div
                       key={`${day}-${hour}`}
-                      className="p-1 border-r last:border-r-0 min-h-[40px] relative hover:bg-muted/20 transition-colors"
-                      onDragOver={handleDragOver}
+                      className={`p-1 border-r last:border-r-0 min-h-[40px] relative transition-colors ${
+                        isDragOver ? 'bg-primary/20 border-2 border-primary border-dashed' : 'hover:bg-muted/20'
+                      }`}
+                      onDragOver={(e) => handleDragOver(e, day, hour)}
+                      onDragLeave={handleDragLeave}
                       onDragEnter={handleDragEnter}
                       onDrop={(e) => handleDrop(e, day, hour)}
                     >
