@@ -27,7 +27,7 @@ export const Header = () => {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center space-x-3">
           <img 
-            src="/src/assets/deezer-logo.svg" 
+            src="/src/assets/deezer-logo-2023.svg" 
             alt="Deezer" 
             className="h-8 w-auto"
           />
