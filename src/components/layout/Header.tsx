@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Music, Play } from "lucide-react";
+import { Menu } from "lucide-react";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -25,13 +25,14 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="relative">
-            <Music className="h-8 w-8 text-primary" />
-            <Play className="absolute -bottom-1 -right-1 h-4 w-4 text-business-accent" />
-          </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            Deezer Business
+        <Link to="/" className="flex items-center space-x-3">
+          <img 
+            src="/src/assets/deezer-logo.svg" 
+            alt="Deezer" 
+            className="h-8 w-auto"
+          />
+          <span className="text-xl font-bold text-foreground tracking-wide">
+            DEEZER BUSINESS
           </span>
         </Link>
 
@@ -56,7 +57,7 @@ export const Header = () => {
           <Button variant="outline" asChild>
             <Link to="/login">Sign In</Link>
           </Button>
-          <Button asChild className="bg-gradient-hero hover:opacity-90">
+          <Button asChild variant="brand">
             <Link to="/signup">Start Free Trial</Link>
           </Button>
         </div>
@@ -88,7 +89,7 @@ export const Header = () => {
                 <Button variant="outline" asChild>
                   <Link to="/login">Sign In</Link>
                 </Button>
-                <Button asChild className="bg-gradient-hero hover:opacity-90">
+                <Button asChild variant="brand">
                   <Link to="/signup">Start Free Trial</Link>
                 </Button>
               </div>
