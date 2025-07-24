@@ -50,8 +50,8 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 bg-gradient-hero text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
+      <section className="relative py-20 lg:py-32 bg-primary text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black/5"></div>
         <div className="container relative z-10">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
@@ -61,7 +61,7 @@ export default function Home() {
             
             <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
               Professional Background Music
-              <span className="block text-business-accent">Made Simple</span>
+              <span className="block text-white">Made Simple</span>
             </h1>
             
             <p className="text-xl lg:text-2xl text-white/90 max-w-3xl mx-auto">
@@ -82,7 +82,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-white">
         <div className="container">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl lg:text-5xl font-bold">Everything You Need</h2>
@@ -93,7 +93,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="relative group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-card">
+              <Card key={index} className="relative group hover:shadow-lg transition-all duration-300 border-0 bg-white shadow-elegant">
                 <CardHeader>
                   <feature.icon className="h-12 w-12 text-primary mb-4 group-hover:text-primary-glow transition-colors" />
                   <CardTitle className="text-xl">{feature.title}</CardTitle>
@@ -108,7 +108,7 @@ export default function Home() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-20 bg-gray-50">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
@@ -127,13 +127,13 @@ export default function Home() {
                 ))}
               </div>
               
-              <Button size="lg" className="bg-gradient-hero hover:opacity-90" asChild>
+              <Button size="lg" variant="brand" asChild>
                 <Link to="/pricing">View Pricing Plans</Link>
               </Button>
             </div>
             
             <div className="relative">
-              <div className="bg-gradient-card rounded-2xl p-8 shadow-elegant">
+              <div className="bg-white rounded-2xl p-8 shadow-elegant border border-gray-100">
                 <div className="space-y-6">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
