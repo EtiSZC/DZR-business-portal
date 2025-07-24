@@ -33,11 +33,23 @@ export default function MobilePlayer() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const handleStartPlaying = async () => {
-    console.log('🎵 Start Playing clicked');
-    console.log('🔍 Checking Deezer initialization:', { isInitialized, DZ: !!window.DZ });
+    console.log('🎵 START PLAYING BUTTON CLICKED!');
+    
+    // Check if window.DZ exists
+    console.log('📱 Window.DZ exists:', !!window.DZ);
+    if (window.DZ) {
+      console.log('📱 DZ object keys:', Object.keys(window.DZ));
+    }
+    
+    console.log('🔍 Current state:', { 
+      isInitialized, 
+      isAuthenticating,
+      DZ: !!window.DZ 
+    });
     
     if (!window.DZ) {
       console.error('❌ Deezer SDK not available on window');
+      alert('Deezer SDK not loaded. Please refresh the page.');
       return;
     }
 
@@ -48,10 +60,12 @@ export default function MobilePlayer() {
         console.log('🎯 Initialization result:', initialized);
         if (!initialized) {
           console.error('❌ Failed to initialize Deezer');
+          alert('Failed to initialize Deezer. Please check your internet connection.');
           return;
         }
       } catch (error) {
         console.error('❌ Error during initialization:', error);
+        alert('Error initializing Deezer: ' + error);
         return;
       }
     }
@@ -59,6 +73,8 @@ export default function MobilePlayer() {
     setIsAuthenticating(true);
     try {
       console.log('🔐 Attempting Deezer login...');
+      console.log('🔐 About to call deezerService.login()');
+      
       // First authenticate with Deezer
       const authenticated = await deezerService.login();
       console.log('🎯 Authentication result:', authenticated);
@@ -69,9 +85,11 @@ export default function MobilePlayer() {
         await loadAndPlayPlaylist('14082842421');
       } else {
         console.error('❌ Failed to authenticate with Deezer');
+        alert('Failed to authenticate with Deezer. Please try again.');
       }
     } catch (error) {
       console.error('❌ Failed to start playing:', error);
+      alert('Error: ' + error);
     } finally {
       setIsAuthenticating(false);
     }
