@@ -46,6 +46,9 @@ export const WeeklyScheduler = () => {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState<number | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
+  const [resizingItem, setResizingItem] = useState<string | null>(null);
+  const [resizeStartY, setResizeStartY] = useState<number>(0);
+  const [resizeStartDuration, setResizeStartDuration] = useState<number>(0);
 
   useEffect(() => {
     loadPlaylists();
@@ -225,6 +228,87 @@ export const WeeklyScheduler = () => {
     return item && item.hour === hour;
   };
 
+  const isLastHourOfItem = (day: string, hour: number) => {
+    const item = getScheduledItem(day, hour);
+    return item && hour === item.hour + Math.ceil(item.duration / 60) - 1;
+  };
+
+  const handleResizeStart = (e: React.MouseEvent, item: ScheduledItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizingItem(item.id);
+    setResizeStartY(e.clientY);
+    setResizeStartDuration(item.duration);
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!resizingItem) return;
+      
+      const deltaY = e.clientY - resizeStartY;
+      const hourHeight = 40; // Each hour slot is 40px
+      const hoursDelta = Math.round(deltaY / hourHeight);
+      
+      // Minimum duration is 15 minutes, maximum is 24 hours
+      const newDuration = Math.max(15, Math.min(1440, resizeStartDuration + (hoursDelta * 60)));
+      
+      // Update the schedule state temporarily for visual feedback
+      setSchedule(prev => prev.map(schedItem => 
+        schedItem.id === resizingItem 
+          ? { ...schedItem, duration: newDuration }
+          : schedItem
+      ));
+    };
+    
+    const handleMouseUp = async () => {
+      if (!resizingItem) return;
+      
+      const item = schedule.find(schedItem => schedItem.id === resizingItem);
+      if (!item) return;
+      
+      // Check for conflicts with new duration
+      const newDurationInHours = Math.ceil(item.duration / 60);
+      const hasConflict = schedule.some(otherItem => 
+        otherItem.id !== item.id &&
+        otherItem.day === item.day && 
+        ((otherItem.hour < item.hour + newDurationInHours && otherItem.hour + Math.ceil(otherItem.duration / 60) > item.hour))
+      );
+      
+      if (hasConflict) {
+        toast.error("Cannot resize: would conflict with another playlist");
+        // Revert to original duration
+        setSchedule(prev => prev.map(schedItem => 
+          schedItem.id === resizingItem 
+            ? { ...schedItem, duration: resizeStartDuration }
+            : schedItem
+        ));
+      } else {
+        // Update in database
+        const { error } = await supabase
+          .from('scheduled_items')
+          .update({ duration: item.duration })
+          .eq('id', item.id);
+        
+        if (error) {
+          toast.error("Failed to update playlist duration");
+          // Revert to original duration
+          setSchedule(prev => prev.map(schedItem => 
+            schedItem.id === resizingItem 
+              ? { ...schedItem, duration: resizeStartDuration }
+              : schedItem
+          ));
+        } else {
+          toast.success("Playlist duration updated");
+        }
+      }
+      
+      setResizingItem(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
   return (
     <div className="space-y-6">
       {/* Playlist Library */}
@@ -358,6 +442,14 @@ export const WeeklyScheduler = () => {
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
                             {Math.floor(scheduledItem.duration / 60)}h {scheduledItem.duration % 60}m
+                          </div>
+                          {/* Resize handle */}
+                          <div 
+                            className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            onMouseDown={(e) => handleResizeStart(e, scheduledItem)}
+                            title="Drag to resize playlist duration"
+                          >
+                            <div className="w-8 h-0.5 bg-foreground/50 rounded"></div>
                           </div>
                         </div>
                       )}
