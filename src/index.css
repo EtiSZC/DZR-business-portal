@@ -52,16 +52,10 @@ All colors MUST be HSL.
     --business-accent: 50 100% 50%;
     --business-muted: 220 13% 95%;
 
-    /* Gradients - Deezer Brand Inspired */
-    --gradient-hero: linear-gradient(135deg, hsl(320 100% 57%) 0%, hsl(280 100% 65%) 50%, hsl(240 100% 75%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 13% 98%) 100%);
-    --gradient-primary: linear-gradient(135deg, hsl(320 100% 57%) 0%, hsl(320 100% 67%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(50 100% 50%) 0%, hsl(80 100% 50%) 100%);
-    
-    /* Shadows - Enhanced with Deezer Brand Colors */
-    --shadow-elegant: 0 10px 30px -10px hsl(320 100% 57% / 0.15);
-    --shadow-glow: 0 0 40px hsl(320 100% 67% / 0.25);
-    --shadow-brand: 0 4px 20px hsl(320 100% 57% / 0.12);
+    /* Clean Shadows - No Gradients */
+    --shadow-elegant: 0 4px 20px -4px hsl(220 13% 91%);
+    --shadow-glow: 0 8px 25px -8px hsl(320 100% 57% / 0.15);
+    --shadow-brand: 0 4px 20px hsl(320 100% 57% / 0.1);
 
     --radius: 0.75rem;
 
@@ -151,39 +145,38 @@ All colors MUST be HSL.
 }
 
 @layer components {
-  /* Deezer Brand Component Classes */
+  /* Clean Deezer Brand Component Classes - No Gradients */
   .brand-heading {
-    @apply text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-deezer-blue to-deezer-green bg-clip-text text-transparent;
+    @apply text-4xl md:text-6xl font-bold text-primary;
   }
   
-  .brand-gradient {
-    @apply bg-gradient-hero;
+  .brand-hero {
+    @apply bg-primary text-white;
   }
   
   .brand-card {
-    @apply bg-gradient-card border border-border/50 shadow-elegant backdrop-blur-sm;
+    @apply bg-card border border-border/10 shadow-elegant;
   }
   
   .brand-glow {
     @apply shadow-glow;
   }
   
-  /* Music-inspired animations */
-  .pulse-beat {
-    animation: pulse-beat 2s ease-in-out infinite;
-  }
-  
-  @keyframes pulse-beat {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-  
-  /* Interactive elements */
+  /* Clean animations */
   .hover-lift {
     @apply transition-all duration-200 hover:scale-105 hover:shadow-brand;
   }
   
-  .brand-text-gradient {
-    @apply bg-gradient-to-r from-primary to-deezer-blue bg-clip-text text-transparent;
+  .brand-text {
+    @apply text-primary font-semibold;
+  }
+  
+  /* Section styling like reference */
+  .section-white {
+    @apply bg-white;
+  }
+  
+  .section-purple {
+    @apply bg-primary text-white;
   }
 }
