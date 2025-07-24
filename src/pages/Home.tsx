@@ -182,7 +182,7 @@ export default function Home() {
             <Button size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8" asChild>
               <Link to="/signup">Start Your Free Trial</Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg px-8" asChild>
+            <Button size="lg" variant="outline" className="border-white text-black bg-white hover:bg-white/90 text-lg px-8" asChild>
               <Link to="/mobile-app">Download Mobile App</Link>
             </Button>
           </div>
