@@ -237,13 +237,13 @@ export const WeeklyScheduler = () => {
   const handleResizeStart = (e: React.MouseEvent, item: ScheduledItem) => {
     e.preventDefault();
     e.stopPropagation();
-    setResizingItem(item.id);
+    const itemId = item.id; // Store the ID locally to avoid state timing issues
+    setResizingItem(itemId);
     setResizeStartY(e.clientY);
     setResizeStartDuration(item.duration);
     
     const handleMouseMove = (e: MouseEvent) => {
-      if (!resizingItem) return;
-      
+      // Use the local itemId instead of state resizingItem to avoid timing issues
       const deltaY = e.clientY - resizeStartY;
       const hourHeight = 40; // Each hour slot is 40px
       const hoursDelta = Math.round(deltaY / hourHeight);
@@ -253,53 +253,59 @@ export const WeeklyScheduler = () => {
       
       // Update the schedule state temporarily for visual feedback
       setSchedule(prev => prev.map(schedItem => 
-        schedItem.id === resizingItem 
+        schedItem.id === itemId 
           ? { ...schedItem, duration: newDuration }
           : schedItem
       ));
     };
     
     const handleMouseUp = async () => {
-      if (!resizingItem) return;
-      
-      const item = schedule.find(schedItem => schedItem.id === resizingItem);
-      if (!item) return;
-      
-      // Check for conflicts with new duration
-      const newDurationInHours = Math.ceil(item.duration / 60);
-      const hasConflict = schedule.some(otherItem => 
-        otherItem.id !== item.id &&
-        otherItem.day === item.day && 
-        ((otherItem.hour < item.hour + newDurationInHours && otherItem.hour + Math.ceil(otherItem.duration / 60) > item.hour))
-      );
-      
-      if (hasConflict) {
-        toast.error("Cannot resize: would conflict with another playlist");
-        // Revert to original duration
-        setSchedule(prev => prev.map(schedItem => 
-          schedItem.id === resizingItem 
-            ? { ...schedItem, duration: resizeStartDuration }
-            : schedItem
-        ));
-      } else {
-        // Update in database
-        const { error } = await supabase
-          .from('scheduled_items')
-          .update({ duration: item.duration })
-          .eq('id', item.id);
+      // Get the current item from schedule to get the updated duration
+      setSchedule(currentSchedule => {
+        const updatedItem = currentSchedule.find(schedItem => schedItem.id === itemId);
+        if (!updatedItem) return currentSchedule;
         
-        if (error) {
-          toast.error("Failed to update playlist duration");
+        const newDuration = updatedItem.duration;
+        const newDurationInHours = Math.ceil(newDuration / 60);
+        
+        // Check for conflicts with other scheduled items
+        const hasConflict = currentSchedule.some(otherItem => 
+          otherItem.id !== itemId && 
+          otherItem.day === item.day && 
+          ((otherItem.hour < item.hour + newDurationInHours && otherItem.hour + Math.ceil(otherItem.duration / 60) > item.hour))
+        );
+        
+        if (hasConflict) {
+          toast.error("Cannot resize: would conflict with another playlist");
           // Revert to original duration
-          setSchedule(prev => prev.map(schedItem => 
-            schedItem.id === resizingItem 
+          return currentSchedule.map(schedItem => 
+            schedItem.id === itemId 
               ? { ...schedItem, duration: resizeStartDuration }
               : schedItem
-          ));
+          );
         } else {
-          toast.success("Playlist duration updated");
+          // Update in database
+          supabase
+            .from('scheduled_items')
+            .update({ duration: newDuration })
+            .eq('id', itemId)
+            .then(({ error }) => {
+              if (error) {
+                toast.error("Failed to update playlist duration");
+                // Revert to original duration
+                setSchedule(prev => prev.map(schedItem => 
+                  schedItem.id === itemId 
+                    ? { ...schedItem, duration: resizeStartDuration }
+                    : schedItem
+                ));
+              } else {
+                toast.success("Playlist duration updated");
+              }
+            });
+          
+          return currentSchedule; // Keep the current changes
         }
-      }
+      });
       
       setResizingItem(null);
       document.removeEventListener('mousemove', handleMouseMove);
