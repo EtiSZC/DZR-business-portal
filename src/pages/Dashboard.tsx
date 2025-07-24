@@ -40,12 +40,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b">
+      <div className="border-b bg-primary">
         <div className="container py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Music Dashboard</h1>
-              <p className="text-muted-foreground">Manage your venue's music schedule and playlists</p>
+              <h1 className="text-3xl font-bold text-white">Music Dashboard</h1>
+              <p className="text-white/80">Manage your venue's music schedule and playlists</p>
             </div>
             <div className="flex items-center space-x-4">
               <Badge className="bg-green-100 text-green-800 border-green-200">
