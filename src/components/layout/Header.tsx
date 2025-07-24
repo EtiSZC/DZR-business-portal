@@ -32,7 +32,7 @@ export const Header = () => {
             className="h-8 w-auto"
           />
           <span className="text-xl font-bold text-foreground tracking-wide">
-            DEEZER BUSINESS
+            BUSINESS
           </span>
         </Link>
 
