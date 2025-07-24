@@ -63,7 +63,7 @@ export const Footer = () => {
         </div>
 
         <div className="border-t pt-8 mt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 Deezer Business. All rights reserved.</p>
+          <p>&copy; 2025 Deezer Business. All rights reserved.</p>
         </div>
       </div>
     </footer>
