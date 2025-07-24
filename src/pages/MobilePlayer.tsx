@@ -6,6 +6,7 @@ import { Play, Pause, SkipForward, SkipBack, Volume2 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { useMobileSchedule } from '@/hooks/useMobileSchedule';
 import { useMusicPlayer } from '@/hooks/useMusicPlayer';
+import { deezerService } from '@/services/deezerService';
 
 export default function MobilePlayer() {
   const { currentSchedule, nextPlaylist, isLoading } = useMobileSchedule();
@@ -18,8 +19,35 @@ export default function MobilePlayer() {
     pause, 
     skipForward, 
     skipBack,
-    setVolume 
+    setVolume,
+    loadAndPlayPlaylist,
+    isInitialized
   } = useMusicPlayer();
+
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+  const handleStartPlaying = async () => {
+    if (!isInitialized) {
+      console.error('Deezer not initialized');
+      return;
+    }
+
+    setIsAuthenticating(true);
+    try {
+      // First authenticate with Deezer
+      const authenticated = await deezerService.login();
+      if (authenticated) {
+        // Play the default Morning Energy playlist
+        await loadAndPlayPlaylist('14082842421');
+      } else {
+        console.error('Failed to authenticate with Deezer');
+      }
+    } catch (error) {
+      console.error('Failed to start playing:', error);
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background p-4 space-y-6">
@@ -87,9 +115,18 @@ export default function MobilePlayer() {
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground">No track currently playing</p>
-              <Button onClick={play} className="mt-4">
-                Start Playing
+              <Button 
+                onClick={handleStartPlaying} 
+                className="mt-4"
+                disabled={!isInitialized || isAuthenticating}
+              >
+                {isAuthenticating ? 'Connecting...' : 'Start Playing'}
               </Button>
+              {!isInitialized && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Initializing music player...
+                </p>
+              )}
             </div>
           )}
         </CardContent>
