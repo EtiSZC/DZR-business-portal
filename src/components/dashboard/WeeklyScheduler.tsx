@@ -10,6 +10,22 @@ import { supabase } from "@/integrations/supabase/client";
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const hours = Array.from({ length: 24 }, (_, i) => i);
 
+// Predefined color palette for playlists
+const playlistColors = [
+  'bg-blue-500',
+  'bg-green-500', 
+  'bg-purple-500',
+  'bg-pink-500',
+  'bg-yellow-500',
+  'bg-indigo-500',
+  'bg-red-500',
+  'bg-teal-500',
+  'bg-orange-500',
+  'bg-cyan-500',
+  'bg-emerald-500',
+  'bg-violet-500'
+];
+
 interface Playlist {
   id: number;
   name: string;
@@ -47,7 +63,13 @@ export const WeeklyScheduler = () => {
       return;
     }
     
-    setPlaylists(data || []);
+    // Assign unique colors to playlists
+    const playlistsWithColors = (data || []).map((playlist, index) => ({
+      ...playlist,
+      color: playlistColors[index % playlistColors.length]
+    }));
+    
+    setPlaylists(playlistsWithColors);
   };
 
   const loadSchedule = async () => {
@@ -316,11 +338,9 @@ export const WeeklyScheduler = () => {
                     >
                       {scheduledItem && isFirstHour && playlist && (
                         <div
-                          className={`absolute inset-1 rounded p-1 group border-l-4 text-xs ${playlist.color} bg-opacity-30 border-opacity-100`}
+                          className={`absolute inset-1 rounded p-1 group border-l-4 text-xs ${playlist.color} bg-opacity-20 border-opacity-80`}
                           style={{ 
-                            height: `${Math.ceil(scheduledItem.duration / 60) * 40 - 4}px`,
-                            backgroundColor: `var(--${playlist.color.replace('bg-', '')}-500, hsl(var(--primary)))`,
-                            borderLeftColor: `var(--${playlist.color.replace('bg-', '')}-600, hsl(var(--primary)))`
+                            height: `${Math.ceil(scheduledItem.duration / 60) * 40 - 4}px`
                           }}
                         >
                           <div className="flex items-center justify-between">
