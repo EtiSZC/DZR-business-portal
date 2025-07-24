@@ -44,36 +44,49 @@ export class DeezerService {
   }
 
   async initialize(): Promise<boolean> {
+    console.log('🔧 DeezerService.initialize() called');
     return new Promise((resolve) => {
       if (this.isInitialized) {
+        console.log('✅ Already initialized');
         resolve(true);
         return;
       }
 
       if (!window.DZ) {
-        console.error('Deezer SDK not loaded');
+        console.error('❌ Deezer SDK not loaded');
         resolve(false);
         return;
       }
 
+      console.log('🔑 Getting app credentials...');
       // Get app credentials from Supabase secrets
       this.getAppCredentials().then((appId) => {
+        console.log('🔑 Received appId:', appId);
         if (!appId) {
-          console.error('Deezer App ID not configured');
+          console.error('❌ Deezer App ID not configured');
           resolve(false);
           return;
         }
 
-        window.DZ.init({
+        const initConfig = {
           appId: appId,
           channelUrl: window.location.origin + '/deezer-channel.html'
-        });
+        };
+        console.log('🚀 Calling DZ.init with config:', initConfig);
 
+        window.DZ.init(initConfig);
+
+        console.log('⏳ Waiting for DZ.ready...');
         window.DZ.ready(() => {
+          console.log('✅ DZ.ready callback triggered!');
           this.isInitialized = true;
           this.setupEventListeners();
+          console.log('✅ Initialization complete');
           resolve(true);
         });
+      }).catch((error) => {
+        console.error('❌ Error getting credentials:', error);
+        resolve(false);
       });
     });
   }
