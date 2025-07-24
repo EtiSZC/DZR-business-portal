@@ -359,9 +359,16 @@ export const WeeklyScheduler = () => {
             >
               Save My Schedule
             </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => toast.success("Schedule downloaded successfully!")}
+            >
+              Download my Schedule
+            </Button>
             <Button variant="outline" size="sm">
               <Plus className="w-4 h-4 mr-2" />
-              Add Template
+              Add Schedule
             </Button>
           </div>
         </div>
