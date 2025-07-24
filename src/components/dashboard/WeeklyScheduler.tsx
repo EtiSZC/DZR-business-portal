@@ -492,7 +492,12 @@ export const WeeklyScheduler = () => {
             >
               Download my Schedule
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              disabled
+              className="opacity-80 cursor-not-allowed"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Schedule
             </Button>
