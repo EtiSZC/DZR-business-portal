@@ -59,6 +59,14 @@ export default {
 					accent: 'hsl(var(--business-accent))',
 					muted: 'hsl(var(--business-muted))'
 				},
+				deezer: {
+					yellow: 'hsl(var(--deezer-yellow))',
+					green: 'hsl(var(--deezer-green))',
+					blue: 'hsl(var(--deezer-blue))',
+					'light-cyan': 'hsl(var(--deezer-light-cyan))',
+					'light-green': 'hsl(var(--deezer-light-green))',
+					'light-pink': 'hsl(var(--deezer-light-pink))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -114,7 +122,14 @@ export default {
 			},
 			backgroundImage: {
 				'gradient-hero': 'var(--gradient-hero)',
-				'gradient-card': 'var(--gradient-card)'
+				'gradient-card': 'var(--gradient-card)',
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-accent': 'var(--gradient-accent)'
+			},
+			boxShadow: {
+				'elegant': 'var(--shadow-elegant)',
+				'glow': 'var(--shadow-glow)',
+				'brand': 'var(--shadow-brand)'
 			}
 		}
 	},

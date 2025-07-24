@@ -17,40 +17,51 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Deezer Business Brand Colors */
-    --primary: 280 100% 50%;
+    /* Deezer Brand Colors - Official Brand Palette */
+    --primary: 320 100% 57%;  /* #ff0092 - Deezer's signature magenta */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 280 100% 60%;
+    --primary-glow: 320 100% 67%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 220 13% 91%;
+    --secondary-foreground: 222.2 84% 4.9%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 220 13% 95%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 280 100% 96%;
-    --accent-foreground: 280 100% 20%;
+    --accent: 320 100% 96%;
+    --accent-foreground: 320 100% 20%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 100% 50%;  /* #ff0000 - Deezer red */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 280 100% 50%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 320 100% 57%;
+
+    /* Deezer Brand Extended Colors */
+    --deezer-yellow: 50 100% 50%;    /* #ffed00 */
+    --deezer-green: 80 100% 50%;     /* #c2ff00 */
+    --deezer-blue: 193 100% 49%;     /* #00c7f2 */
+    --deezer-light-cyan: 190 100% 88%; /* #c1f1fc */
+    --deezer-light-green: 80 100% 85%; /* #ebffac */
+    --deezer-light-pink: 320 100% 88%; /* #ffc2e5 */
 
     /* Business Theme Colors */
-    --business-primary: 280 100% 50%;
-    --business-secondary: 240 100% 98%;
-    --business-accent: 45 100% 51%;
-    --business-muted: 240 4.8% 95.9%;
+    --business-primary: 320 100% 57%;
+    --business-secondary: 220 13% 96%;
+    --business-accent: 50 100% 50%;
+    --business-muted: 220 13% 95%;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(280 100% 50%) 0%, hsl(240 100% 60%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(240 4.8% 98%) 100%);
+    /* Gradients - Deezer Brand Inspired */
+    --gradient-hero: linear-gradient(135deg, hsl(320 100% 57%) 0%, hsl(280 100% 65%) 50%, hsl(240 100% 75%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 13% 98%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(320 100% 57%) 0%, hsl(320 100% 67%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(50 100% 50%) 0%, hsl(80 100% 50%) 100%);
     
-    /* Shadows */
-    --shadow-elegant: 0 10px 30px -10px hsl(280 100% 50% / 0.2);
-    --shadow-glow: 0 0 40px hsl(280 100% 60% / 0.3);
+    /* Shadows - Enhanced with Deezer Brand Colors */
+    --shadow-elegant: 0 10px 30px -10px hsl(320 100% 57% / 0.15);
+    --shadow-glow: 0 0 40px hsl(320 100% 67% / 0.25);
+    --shadow-brand: 0 4px 20px hsl(320 100% 57% / 0.12);
 
     --radius: 0.75rem;
 
@@ -75,30 +86,31 @@ All colors MUST be HSL.
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 225 71% 7%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 225 71% 7%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Deezer Primary remains vibrant in dark mode */
+    --primary: 320 100% 57%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 215 28% 17%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 217.9 10.6% 64.9%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 215 28% 17%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 320 100% 57%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -117,5 +129,61 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Deezer Brand Typography Enhancements */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+  
+  h1 {
+    font-size: 2.5rem;
+    line-height: 1.1;
+  }
+  
+  /* Enhanced focus states with Deezer brand colors */
+  :focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Deezer Brand Component Classes */
+  .brand-heading {
+    @apply text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-deezer-blue to-deezer-green bg-clip-text text-transparent;
+  }
+  
+  .brand-gradient {
+    @apply bg-gradient-hero;
+  }
+  
+  .brand-card {
+    @apply bg-gradient-card border border-border/50 shadow-elegant backdrop-blur-sm;
+  }
+  
+  .brand-glow {
+    @apply shadow-glow;
+  }
+  
+  /* Music-inspired animations */
+  .pulse-beat {
+    animation: pulse-beat 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-beat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  
+  /* Interactive elements */
+  .hover-lift {
+    @apply transition-all duration-200 hover:scale-105 hover:shadow-brand;
+  }
+  
+  .brand-text-gradient {
+    @apply bg-gradient-to-r from-primary to-deezer-blue bg-clip-text text-transparent;
   }
 }
