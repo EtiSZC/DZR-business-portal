@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import logoSvg from "@/assets/deezer-logo-2023.svg";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -27,7 +28,7 @@ export const Header = () => {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center space-x-3">
           <img 
-            src="/src/assets/deezer-logo-2023.svg" 
+            src={logoSvg} 
             alt="Deezer" 
             className="h-8 w-auto"
           />
