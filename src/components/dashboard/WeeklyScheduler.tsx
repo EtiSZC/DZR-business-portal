@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Clock, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import * as yaml from 'js-yaml';
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -309,6 +310,102 @@ export const WeeklyScheduler = () => {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  const generateScheduleYAML = () => {
+    const scheduleData = {
+      schedule: {
+        created_at: new Date().toISOString(),
+        venue: "My Venue",
+        week_schedule: days.reduce((acc, day) => {
+          const daySchedule = schedule
+            .filter(item => item.day === day)
+            .sort((a, b) => a.hour - b.hour)
+            .map(item => {
+              const playlist = getPlaylistById(item.playlist_id);
+              return {
+                time: `${item.hour.toString().padStart(2, '0')}:00`,
+                playlist: playlist?.name || 'Unknown Playlist',
+                duration_minutes: item.duration,
+                duration_hours: Math.floor(item.duration / 60),
+                duration_remaining_minutes: item.duration % 60
+              };
+            });
+          
+          acc[day.toLowerCase()] = daySchedule;
+          return acc;
+        }, {} as Record<string, any>)
+      }
+    };
+    
+    return yaml.dump(scheduleData, { 
+      indent: 2,
+      lineWidth: 120,
+      noRefs: true 
+    });
+  };
+
+  const saveScheduleAsYAML = async () => {
+    try {
+      const yamlContent = generateScheduleYAML();
+      
+      const { data, error } = await supabase
+        .from('saved_schedules')
+        .upsert({
+          name: 'My Schedule',
+          yaml_content: yamlContent
+        }, {
+          onConflict: 'name'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        toast.error("Failed to save schedule");
+        console.error(error);
+        return;
+      }
+
+      toast.success("Schedule saved successfully!");
+    } catch (err) {
+      console.error("Error saving schedule:", err);
+      toast.error("Failed to save schedule");
+    }
+  };
+
+  const downloadSchedule = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('saved_schedules')
+        .select('yaml_content')
+        .eq('name', 'My Schedule')
+        .single();
+
+      if (error || !data) {
+        // If no saved schedule exists, generate from current schedule
+        const yamlContent = generateScheduleYAML();
+        downloadYAMLFile(yamlContent);
+        return;
+      }
+
+      downloadYAMLFile(data.yaml_content);
+    } catch (err) {
+      console.error("Error downloading schedule:", err);
+      toast.error("Failed to download schedule");
+    }
+  };
+
+  const downloadYAMLFile = (yamlContent: string) => {
+    const blob = new Blob([yamlContent], { type: 'text/yaml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `music-schedule-${new Date().toISOString().split('T')[0]}.yml`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Schedule downloaded successfully!");
+  };
+
   return (
     <div className="space-y-6">
       {/* Playlist Library */}
@@ -355,14 +452,14 @@ export const WeeklyScheduler = () => {
             <Button 
               variant="default" 
               size="sm"
-              onClick={() => toast.success("Schedule saved successfully! All changes are automatically saved.")}
+              onClick={saveScheduleAsYAML}
             >
               Save My Schedule
             </Button>
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => toast.success("Schedule downloaded successfully!")}
+              onClick={downloadSchedule}
             >
               Download my Schedule
             </Button>

@@ -41,6 +41,30 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_schedules: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          yaml_content: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          yaml_content: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          yaml_content?: string
+        }
+        Relationships: []
+      }
       scheduled_items: {
         Row: {
           created_at: string
