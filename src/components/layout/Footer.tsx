@@ -10,7 +10,7 @@ export const Footer = () => {
           <div className="space-y-4">
             <Link to="/" className="flex items-center">
               <img 
-                src="/src/assets/deezer-logo-2023.svg" 
+                src="/src/assets/deezer-logo.svg" 
                 alt="Deezer Business" 
                 className="h-8 w-auto"
               />
