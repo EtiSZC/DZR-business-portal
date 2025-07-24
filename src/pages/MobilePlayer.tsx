@@ -8,6 +8,12 @@ import { useMobileSchedule } from '@/hooks/useMobileSchedule';
 import { useMusicPlayer } from '@/hooks/useMusicPlayer';
 import { deezerService } from '@/services/deezerService';
 
+declare global {
+  interface Window {
+    DZ: any;
+  }
+}
+
 export default function MobilePlayer() {
   const { currentSchedule, nextPlaylist, isLoading } = useMobileSchedule();
   const { 
@@ -27,23 +33,45 @@ export default function MobilePlayer() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const handleStartPlaying = async () => {
-    if (!isInitialized) {
-      console.error('Deezer not initialized');
+    console.log('🎵 Start Playing clicked');
+    console.log('🔍 Checking Deezer initialization:', { isInitialized, DZ: !!window.DZ });
+    
+    if (!window.DZ) {
+      console.error('❌ Deezer SDK not available on window');
       return;
+    }
+
+    if (!isInitialized) {
+      console.log('⏳ Deezer not initialized, attempting to initialize...');
+      try {
+        const initialized = await deezerService.initialize();
+        console.log('🎯 Initialization result:', initialized);
+        if (!initialized) {
+          console.error('❌ Failed to initialize Deezer');
+          return;
+        }
+      } catch (error) {
+        console.error('❌ Error during initialization:', error);
+        return;
+      }
     }
 
     setIsAuthenticating(true);
     try {
+      console.log('🔐 Attempting Deezer login...');
       // First authenticate with Deezer
       const authenticated = await deezerService.login();
+      console.log('🎯 Authentication result:', authenticated);
+      
       if (authenticated) {
+        console.log('✅ Authenticated! Loading playlist...');
         // Play the default Morning Energy playlist
         await loadAndPlayPlaylist('14082842421');
       } else {
-        console.error('Failed to authenticate with Deezer');
+        console.error('❌ Failed to authenticate with Deezer');
       }
     } catch (error) {
-      console.error('Failed to start playing:', error);
+      console.error('❌ Failed to start playing:', error);
     } finally {
       setIsAuthenticating(false);
     }
