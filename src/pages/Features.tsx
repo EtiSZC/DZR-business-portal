@@ -106,7 +106,7 @@ export default function Features() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-hero text-white">
+      <section className="py-20 bg-primary text-white">
         <div className="container text-center space-y-6">
           <Badge className="bg-white/20 text-white border-white/30">
             <Zap className="w-4 h-4 mr-2" />
@@ -121,7 +121,7 @@ export default function Features() {
       </section>
 
       {/* Main Features */}
-      <section className="py-20">
+      <section className="py-20 bg-white">
         <div className="container">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold">Core Features</h2>
@@ -154,7 +154,7 @@ export default function Features() {
                 </div>
                 
                 <div className={`${index % 2 === 1 ? 'lg:col-start-1 lg:row-start-1' : ''}`}>
-                  <Card className="bg-gradient-card border-0 shadow-elegant p-8">
+                  <Card className="bg-card border shadow-elegant p-8">
                     <div className="aspect-video bg-muted/30 rounded-lg flex items-center justify-center">
                       <feature.icon className="w-16 h-16 text-primary/30" />
                     </div>
@@ -167,7 +167,7 @@ export default function Features() {
       </section>
 
       {/* Additional Features */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-20 bg-gray-50">
         <div className="container">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold">Additional Features</h2>
@@ -178,7 +178,7 @@ export default function Features() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {additionalFeatures.map((feature, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300">
+              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 bg-white">
                 <CardHeader>
                   <feature.icon className="h-12 w-12 text-primary mx-auto mb-4" />
                   <CardTitle className="text-lg">{feature.title}</CardTitle>
@@ -193,7 +193,7 @@ export default function Features() {
       </section>
 
       {/* Mobile App Features */}
-      <section className="py-20">
+      <section className="py-20 bg-white">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
@@ -235,13 +235,13 @@ export default function Features() {
                 </div>
               </div>
               
-              <Button size="lg" className="bg-gradient-hero hover:opacity-90" asChild>
+              <Button size="lg" className="bg-primary text-white hover:bg-primary/90" asChild>
                 <Link to="/mobile-app">Download Mobile App</Link>
               </Button>
             </div>
             
             <div className="relative">
-              <Card className="bg-gradient-card border-0 shadow-elegant p-12">
+              <Card className="bg-card border shadow-elegant p-12">
                 <div className="aspect-square bg-muted/30 rounded-2xl flex items-center justify-center">
                   <Smartphone className="w-24 h-24 text-primary/30" />
                 </div>
@@ -259,10 +259,10 @@ export default function Features() {
             Try Deezer Business risk-free for 14 days and see how our features can transform your venue's atmosphere.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8" asChild>
+            <Button size="lg" className="bg-white text-black hover:bg-white/90 text-lg px-8" asChild>
               <Link to="/signup">Start Free Trial</Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg px-8" asChild>
+            <Button size="lg" variant="outline" className="border-white text-black bg-white hover:bg-white/90 text-lg px-8" asChild>
               <Link to="/dashboard">View Demo Dashboard</Link>
             </Button>
           </div>

@@ -61,7 +61,7 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <section className="py-20 bg-gradient-hero text-white">
+      <section className="py-20 bg-primary text-white">
         <div className="container text-center space-y-6">
           <Badge className="bg-white/20 text-white border-white/30">
             <Star className="w-4 h-4 mr-2" />
@@ -75,11 +75,11 @@ export default function Pricing() {
       </section>
 
       {/* Pricing Cards */}
-      <section className="py-20">
+      <section className="py-20 bg-white">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {plans.map((plan, index) => (
-              <Card key={index} className={`relative ${plan.popular ? 'ring-2 ring-primary shadow-2xl scale-105' : ''}`}>
+              <Card key={index} className={`relative bg-white ${plan.popular ? 'ring-2 ring-primary shadow-2xl scale-105' : ''}`}>
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-primary text-primary-foreground px-6 py-1">
@@ -109,7 +109,7 @@ export default function Pricing() {
                   </ul>
                   
                   <Button 
-                    className={`w-full ${plan.popular ? 'bg-gradient-hero hover:opacity-90' : ''}`}
+                    className={`w-full ${plan.popular ? 'bg-primary text-white hover:bg-primary/90' : ''}`}
                     variant={plan.popular ? "default" : "outline"}
                     size="lg"
                     asChild
@@ -126,7 +126,7 @@ export default function Pricing() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-20 bg-gray-50">
         <div className="container">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold">Frequently Asked Questions</h2>
@@ -178,7 +178,7 @@ export default function Pricing() {
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
             Join hundreds of venues already using Deezer Business to create the perfect atmosphere.
           </p>
-          <Button size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8" asChild>
+          <Button size="lg" className="bg-white text-black hover:bg-white/90 text-lg px-8" asChild>
             <Link to="/signup">Start Your Free Trial</Link>
           </Button>
         </div>
