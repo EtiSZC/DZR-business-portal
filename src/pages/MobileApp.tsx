@@ -283,6 +283,12 @@ export default function MobileApp() {
               <Play className="w-5 h-5" />
               <span>Get it on Google Play</span>
             </Button>
+            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 flex items-center space-x-2" asChild>
+              <Link to="/mobile-player">
+                <Play className="w-5 h-5" />
+                <span>Try Web Player</span>
+              </Link>
+            </Button>
           </div>
           <p className="text-sm text-white/70">
             Free download • No credit card required for trial
