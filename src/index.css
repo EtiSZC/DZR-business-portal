@@ -18,9 +18,9 @@ All colors MUST be HSL.
     --popover-foreground: 222.2 84% 4.9%;
 
     /* Deezer Brand Colors - Official Brand Palette */
-    --primary: 320 100% 57%;  /* #ff0092 - Deezer's signature magenta */
+    --primary: 261 73% 52%;  /* #6c5ce7 - Deezer's violet */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 320 100% 67%;
+    --primary-glow: 261 73% 62%;
 
     --secondary: 220 13% 91%;
     --secondary-foreground: 222.2 84% 4.9%;
@@ -28,15 +28,15 @@ All colors MUST be HSL.
     --muted: 220 13% 95%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 320 100% 96%;
-    --accent-foreground: 320 100% 20%;
+    --accent: 261 73% 96%;
+    --accent-foreground: 261 73% 20%;
 
     --destructive: 0 100% 50%;  /* #ff0000 - Deezer red */
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 320 100% 57%;
+    --ring: 261 73% 52%;
 
     /* Deezer Brand Extended Colors */
     --deezer-yellow: 50 100% 50%;    /* #ffed00 */
@@ -44,18 +44,18 @@ All colors MUST be HSL.
     --deezer-blue: 193 100% 49%;     /* #00c7f2 */
     --deezer-light-cyan: 190 100% 88%; /* #c1f1fc */
     --deezer-light-green: 80 100% 85%; /* #ebffac */
-    --deezer-light-pink: 320 100% 88%; /* #ffc2e5 */
+    --deezer-light-pink: 261 73% 88%; /* #d5cfff */
 
     /* Business Theme Colors */
-    --business-primary: 320 100% 57%;
+    --business-primary: 261 73% 52%;
     --business-secondary: 220 13% 96%;
     --business-accent: 50 100% 50%;
     --business-muted: 220 13% 95%;
 
     /* Clean Shadows - No Gradients */
     --shadow-elegant: 0 4px 20px -4px hsl(220 13% 91%);
-    --shadow-glow: 0 8px 25px -8px hsl(320 100% 57% / 0.15);
-    --shadow-brand: 0 4px 20px hsl(320 100% 57% / 0.1);
+    --shadow-glow: 0 8px 25px -8px hsl(261 73% 52% / 0.15);
+    --shadow-brand: 0 4px 20px hsl(261 73% 52% / 0.1);
 
     --radius: 0.75rem;
 
@@ -87,7 +87,7 @@ All colors MUST be HSL.
     --popover-foreground: 210 40% 98%;
 
     /* Deezer Primary remains vibrant in dark mode */
-    --primary: 320 100% 57%;
+    --primary: 261 73% 52%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 215 28% 17%;
@@ -104,7 +104,7 @@ All colors MUST be HSL.
 
     --border: 215 28% 17%;
     --input: 215 28% 17%;
-    --ring: 320 100% 57%;
+    --ring: 261 73% 52%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
