@@ -164,7 +164,7 @@ export default function MobilePlayer() {
               <Button 
                 onClick={handleStartPlaying} 
                 className="mt-4"
-                disabled={!isInitialized || isAuthenticating}
+                disabled={isAuthenticating}
               >
                 {isAuthenticating ? 'Connecting...' : 'Start Playing'}
               </Button>
