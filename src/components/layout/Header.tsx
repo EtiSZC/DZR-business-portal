@@ -31,7 +31,7 @@ export const Header = () => {
             alt="Deezer" 
             className="h-8 w-auto"
           />
-          <span className="text-xl font-bold text-foreground tracking-wide">
+          <span className="text-lg font-bold text-foreground tracking-wide">
             BUSINESS
           </span>
         </Link>
