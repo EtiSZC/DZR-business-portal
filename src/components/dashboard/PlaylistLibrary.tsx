@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,18 +6,22 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, Music, Play, Search, Filter, Heart, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { deezerService } from "@/services/deezerService";
+import { useMusicPlayer } from "@/hooks/useMusicPlayer";
 
+// Real Deezer playlists with mock fallbacks
 const playlists = [
   {
     id: 1,
-    name: "Morning Coffee Vibes",
+    name: "Morning Energy",
     category: "Coffee Shop",
     duration: "2h 15m",
     tracks: 34,
-    mood: "Relaxed",
-    description: "Perfect background music for morning coffee service",
-    image: "🎵",
+    mood: "Energetic",
+    description: "High-energy tracks to kickstart your morning",
+    image: "⚡",
     isLiked: true,
+    deezerPlaylistId: "14082842421", // Real Deezer playlist
   },
   {
     id: 2,
@@ -84,6 +88,28 @@ export const PlaylistLibrary = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedMood, setSelectedMood] = useState("All");
   const [likedPlaylists, setLikedPlaylists] = useState<number[]>([1, 3, 5]);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const { loadAndPlayPlaylist } = useMusicPlayer();
+
+  useEffect(() => {
+    const initializeDeezer = async () => {
+      const initialized = await deezerService.initialize();
+      setIsInitialized(initialized);
+    };
+    initializeDeezer();
+  }, []);
+
+  const handlePlayPlaylist = async (playlist: any) => {
+    if (playlist.deezerPlaylistId && isInitialized) {
+      try {
+        await loadAndPlayPlaylist(playlist.deezerPlaylistId);
+      } catch (error) {
+        console.error('Failed to play Deezer playlist:', error);
+      }
+    } else {
+      console.log('Playing mock playlist:', playlist.name);
+    }
+  };
 
   const filteredPlaylists = playlists.filter(playlist => {
     const matchesSearch = playlist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -221,7 +247,11 @@ export const PlaylistLibrary = () => {
                     />
                   </Button>
                   
-                  <Button size="sm" className="bg-gradient-hero hover:opacity-90">
+                  <Button 
+                    size="sm" 
+                    className="bg-gradient-hero hover:opacity-90"
+                    onClick={() => handlePlayPlaylist(playlist)}
+                  >
                     <Play className="h-4 w-4 mr-2" />
                     Play
                   </Button>
