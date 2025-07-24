@@ -406,6 +406,29 @@ export const WeeklyScheduler = () => {
     toast.success("Schedule downloaded successfully!");
   };
 
+  const eraseSchedule = async () => {
+    try {
+      // Delete all scheduled items from database
+      const { error } = await supabase
+        .from('scheduled_items')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records
+
+      if (error) {
+        toast.error("Failed to erase schedule");
+        console.error(error);
+        return;
+      }
+
+      // Clear local schedule state
+      setSchedule([]);
+      toast.success("Schedule erased successfully!");
+    } catch (err) {
+      console.error("Error erasing schedule:", err);
+      toast.error("Failed to erase schedule");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Playlist Library */}
@@ -466,6 +489,13 @@ export const WeeklyScheduler = () => {
             <Button variant="outline" size="sm">
               <Plus className="w-4 h-4 mr-2" />
               Add Schedule
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              onClick={eraseSchedule}
+            >
+              Erase my Schedule
             </Button>
           </div>
         </div>
