@@ -8,15 +8,12 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <Link to="/" className="flex items-center space-x-3">
+            <Link to="/" className="flex items-center">
               <img 
                 src="/src/assets/deezer-logo-2023.svg" 
                 alt="Deezer Business" 
                 className="h-8 w-auto"
               />
-              <span className="text-xl font-bold">
-                BUSINESS
-              </span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Professional background music solutions for independent commercial venues.
