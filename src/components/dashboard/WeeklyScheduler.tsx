@@ -579,7 +579,11 @@ export const WeeklyScheduler = () => {
                           </div>
                           {/* Resize handle */}
                           <div 
-                            className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            className="absolute left-0 right-0 h-2 cursor-ns-resize hover:bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            style={{ 
+                              bottom: '-1px',
+                              top: 'auto'
+                            }}
                             onMouseDown={(e) => handleResizeStart(e, scheduledItem)}
                             title="Drag to resize playlist duration"
                           >
