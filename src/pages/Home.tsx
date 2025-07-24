@@ -70,11 +70,11 @@ export default function Home() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8" asChild>
+              <Button size="lg" className="bg-white text-black hover:bg-white/90 text-lg px-8" asChild>
                 <Link to="/signup">Start Free Trial</Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg px-8" asChild>
-                <Link to="/features">See Features</Link>
+              <Button size="lg" variant="outline" className="border-white text-black bg-white hover:bg-white/90 text-lg px-8" asChild>
+                <Link to="/features">Explore Features</Link>
               </Button>
             </div>
           </div>
