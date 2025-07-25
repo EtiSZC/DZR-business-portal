@@ -174,31 +174,29 @@ export const PlaylistLibrary = () => {
               </div>
               
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleLike(playlist.id)}
-                    className="h-8 w-8"
-                  >
-                    <Heart 
-                      className={`h-4 w-4 ${
-                        likedPlaylists.includes(playlist.id) 
-                          ? 'fill-red-500 text-red-500' 
-                          : 'text-muted-foreground'
-                      }`} 
-                    />
-                  </Button>
-                  
-                  <Button 
-                    size="sm" 
-                    className="bg-gradient-hero hover:opacity-90"
-                    onClick={() => handlePlayPlaylist(playlist)}
-                  >
-                    <Play className="h-4 w-4 mr-2" />
-                    Play
-                  </Button>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => toggleLike(playlist.id)}
+                  className="h-8 w-8"
+                >
+                  <Heart 
+                    className={`h-4 w-4 ${
+                      likedPlaylists.includes(playlist.id) 
+                        ? 'fill-red-500 text-red-500' 
+                        : 'text-muted-foreground'
+                    }`} 
+                  />
+                </Button>
+                
+                <Button 
+                  size="sm" 
+                  className="bg-gradient-hero hover:opacity-90"
+                  onClick={() => handlePlayPlaylist(playlist)}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Play
+                </Button>
               </div>
             </CardContent>
           </Card>
