@@ -308,20 +308,23 @@ export const WeeklyScheduler = () => {
     e.stopPropagation();
     const itemId = item.id; // Store the ID locally to avoid state timing issues
     setResizingItem(itemId);
-    setResizeStartY(e.clientY);
-    setResizeStartDuration(item.duration);
+    const startY = e.clientY;
+    const startDuration = item.duration;
+    setResizeStartY(startY);
+    setResizeStartDuration(startDuration);
+    console.log("Resize start:", { startY, startDuration, itemId });
     
     const handleMouseMove = (e: MouseEvent) => {
-      // Use the local itemId instead of state resizingItem to avoid timing issues
-      const deltaY = e.clientY - resizeStartY;
-      console.log("Resize debug:", { deltaY, resizeStartY, currentY: e.clientY, resizeStartDuration });
+      // Use the local values instead of state to avoid timing issues
+      const deltaY = e.clientY - startY;
+      console.log("Resize debug:", { deltaY, startY, currentY: e.clientY, startDuration });
       
       // Very conservative: only allow 15-minute changes per 50px movement
       const minutesDelta = Math.round(deltaY / 50) * 15;
       console.log("Minutes delta:", minutesDelta);
       
       // Minimum duration is 15 minutes, maximum is 24 hours
-      const newDuration = Math.max(15, Math.min(1440, resizeStartDuration + minutesDelta));
+      const newDuration = Math.max(15, Math.min(1440, startDuration + minutesDelta));
       console.log("New duration:", newDuration, "hours:", Math.floor(newDuration / 60), "minutes:", newDuration % 60);
       
       // Update the schedule state temporarily for visual feedback
