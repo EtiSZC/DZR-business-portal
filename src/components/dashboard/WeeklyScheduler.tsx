@@ -384,14 +384,19 @@ export const WeeklyScheduler = () => {
         ));
       } else if (newDuration !== startDuration) {
         // Only update database if duration actually changed
+        console.log("🔄 Updating duration in database:", { itemId, newDuration, startDuration });
+        
         try {
-          const { error } = await supabase
+          const { data, error } = await supabase
             .from('scheduled_items')
             .update({ duration: newDuration })
-            .eq('id', itemId);
+            .eq('id', itemId)
+            .select()
+            .single();
             
           if (error) {
-            toast.error("Failed to update playlist duration");
+            console.error("❌ Database update failed:", error);
+            toast.error(`Failed to update playlist duration: ${error.message}`);
             // Revert to original duration
             setSchedule(prev => prev.map(schedItem => 
               schedItem.id === itemId 
@@ -399,10 +404,14 @@ export const WeeklyScheduler = () => {
                 : schedItem
             ));
           } else {
+            console.log("✅ Database updated successfully:", data);
             toast.success("Playlist duration updated");
+            
+            // Force a reload of the schedule to ensure consistency
+            await loadSchedule();
           }
         } catch (error) {
-          console.error("Error updating duration:", error);
+          console.error("❌ Unexpected error updating duration:", error);
           toast.error("Failed to update playlist duration");
           // Revert to original duration
           setSchedule(prev => prev.map(schedItem => 
