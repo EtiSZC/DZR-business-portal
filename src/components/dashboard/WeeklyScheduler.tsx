@@ -612,6 +612,8 @@ export const WeeklyScheduler = () => {
                         isDragOver ? 'bg-primary/20 border-2 border-primary border-dashed' : 'hover:bg-muted/20'
                       } ${selectedPlaylist ? 'border border-dashed border-muted-foreground/30' : ''}`}
                       onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         console.log("🔥 DRAGOVER EVENT FIRED for", day, hour);
                         handleDragOver(e, day, hour);
                       }}
@@ -624,7 +626,9 @@ export const WeeklyScheduler = () => {
                         handleDragEnter(e);
                       }}
                       onDrop={(e) => {
-                        console.log("🔥 DROP EVENT FIRED!");
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log("🔥 DROP EVENT FIRED for", day, hour);
                         handleDrop(e, day, hour);
                       }}
                       onClick={() => {
