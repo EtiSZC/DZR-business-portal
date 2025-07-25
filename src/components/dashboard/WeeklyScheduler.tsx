@@ -316,8 +316,10 @@ export const WeeklyScheduler = () => {
       const deltaY = e.clientY - resizeStartY;
       const hourHeight = 40; // Each hour slot is 40px
       
-      // Use finer granularity - 15 minute increments instead of full hours
-      const minutesDelta = Math.round((deltaY / hourHeight) * 60 / 15) * 15; // Round to nearest 15 minutes
+      // More conservative calculation: every 20px = 15 minutes
+      const pixelsPerQuarter = 20; // 20px for 15 minutes
+      const quartersDelta = Math.round(deltaY / pixelsPerQuarter);
+      const minutesDelta = quartersDelta * 15;
       
       // Minimum duration is 15 minutes, maximum is 24 hours
       const newDuration = Math.max(15, Math.min(1440, resizeStartDuration + minutesDelta));
