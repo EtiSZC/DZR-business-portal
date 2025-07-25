@@ -314,11 +314,10 @@ export const WeeklyScheduler = () => {
     const handleMouseMove = (e: MouseEvent) => {
       // Use the local itemId instead of state resizingItem to avoid timing issues
       const deltaY = e.clientY - resizeStartY;
-      const hourHeight = 40; // Each hour slot is 40px
       
-      // More conservative calculation: every 20px = 15 minutes
-      const pixelsPerQuarter = 20; // 20px for 15 minutes
-      const quartersDelta = Math.round(deltaY / pixelsPerQuarter);
+      // Very conservative calculation: every 40px = 15 minutes (same as one hour slot height)
+      const pixelsPer15Min = 40;
+      const quartersDelta = Math.floor(deltaY / pixelsPer15Min); // Use floor for more control
       const minutesDelta = quartersDelta * 15;
       
       // Minimum duration is 15 minutes, maximum is 24 hours
