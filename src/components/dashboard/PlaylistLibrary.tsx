@@ -34,11 +34,9 @@ export const PlaylistLibrary = () => {
 
   useEffect(() => {
     loadPlaylists();
-    const initializeDeezer = async () => {
-      const initialized = await newDeezerService.initialize();
-      setIsInitialized(initialized);
-    };
-    initializeDeezer();
+    // Deezer initialization disabled
+    console.log('🚫 Deezer initialization disabled in PlaylistLibrary');
+    setIsInitialized(false);
   }, []);
 
   const loadPlaylists = async () => {

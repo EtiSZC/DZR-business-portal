@@ -88,20 +88,9 @@ export default function MobilePlayer() {
     }
 
     if (!isInitialized) {
-      console.log('⏳ Deezer not initialized, attempting to initialize...');
-      try {
-        const initialized = await newDeezerService.initialize();
-        console.log('🎯 Initialization result:', initialized);
-        if (!initialized) {
-          console.error('❌ Failed to initialize Deezer');
-          alert('Failed to initialize Deezer. Please check your internet connection.');
-          return;
-        }
-      } catch (error) {
-        console.error('❌ Error during initialization:', error);
-        alert('Error initializing Deezer: ' + error);
-        return;
-      }
+      console.log('🚫 Deezer initialization disabled');
+      alert('Deezer functionality has been disabled.');
+      return;
     }
 
     setIsAuthenticating(true);

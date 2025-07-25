@@ -19,33 +19,11 @@ export function useMusicPlayer() {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize Deezer service
+  // Initialize Deezer service - DISABLED
   useEffect(() => {
-    const initializeDeezer = async () => {
-      try {
-        const initialized = await newDeezerService.initialize();
-        setIsInitialized(initialized);
-        
-        if (initialized) {
-          // Set up event listeners
-          newDeezerService.on('play', () => setIsPlaying(true));
-          newDeezerService.on('pause', () => setIsPlaying(false));
-          newDeezerService.on('progress', (data: { position: number; duration: number }) => {
-            if (data.duration > 0) {
-              setProgress((data.position / data.duration) * 100);
-            }
-          });
-          newDeezerService.on('track_end', () => {
-            setIsPlaying(false);
-            skipForward();
-          });
-        }
-      } catch (error) {
-        console.error('Failed to initialize Deezer:', error);
-      }
-    };
-
-    initializeDeezer();
+    // Deezer initialization disabled
+    console.log('🚫 Deezer initialization disabled');
+    setIsInitialized(false);
   }, []);
 
   // Update current track info
