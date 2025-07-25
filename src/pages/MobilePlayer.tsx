@@ -7,6 +7,7 @@ import { Slider } from '@/components/ui/slider';
 import { useMobileSchedule } from '@/hooks/useMobileSchedule';
 import { useMusicPlayer } from '@/hooks/useMusicPlayer';
 import { newDeezerService } from '@/services/newDeezerService';
+import { ScheduleService } from '@/services/scheduleService';
 
 declare global {
   interface Window {
@@ -31,8 +32,45 @@ export default function MobilePlayer() {
   } = useMusicPlayer();
 
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const scheduleService = ScheduleService.getInstance();
 
-  const handleStartPlaying = async () => {
+  // Initialize schedule service and listen for schedule changes
+  useEffect(() => {
+    const initializeSchedule = async () => {
+      await scheduleService.initialize();
+    };
+
+    const handleScheduleChange = (event: CustomEvent) => {
+      const { playlistId } = event.detail;
+      console.log('📅 Schedule changed, switching to playlist:', playlistId);
+      loadAndPlayPlaylist(playlistId.toString());
+    };
+
+    initializeSchedule();
+    window.addEventListener('scheduleChange', handleScheduleChange as EventListener);
+
+    return () => {
+      window.removeEventListener('scheduleChange', handleScheduleChange as EventListener);
+      scheduleService.stop();
+    };
+  }, [loadAndPlayPlaylist]);
+
+  // Auto-start with current scheduled playlist if available
+  useEffect(() => {
+    if (isInitialized && !currentTrack && currentSchedule) {
+      const activeItem = currentSchedule.items.find(item => item.isActive);
+      if (activeItem) {
+        // Extract playlist ID from the active item (you may need to adjust this based on your data structure)
+        const currentPlaylist = scheduleService.getCurrentPlaylist();
+        if (currentPlaylist) {
+          console.log('🎵 Auto-starting with scheduled playlist:', currentPlaylist.playlistId);
+          handleStartPlaying(currentPlaylist.playlistId.toString());
+        }
+      }
+    }
+  }, [isInitialized, currentTrack, currentSchedule]);
+
+  const handleStartPlaying = async (playlistId?: string) => {
     console.log('🎵 START PLAYING BUTTON CLICKED!');
     
     // Check if window.DZ exists
@@ -81,8 +119,11 @@ export default function MobilePlayer() {
       
       if (authenticated) {
         console.log('✅ Authenticated! Loading playlist...');
-        // Play the default Morning Energy playlist
-        await loadAndPlayPlaylist('14082842421');
+        // Use provided playlist ID or get current scheduled playlist or default
+        const targetPlaylistId = playlistId || 
+          scheduleService.getCurrentPlaylist()?.playlistId.toString() || 
+          '14082842421';
+        await loadAndPlayPlaylist(targetPlaylistId);
       } else {
         console.error('❌ Failed to authenticate with Deezer');
         alert('Failed to authenticate with Deezer. Please try again.');
@@ -162,7 +203,7 @@ export default function MobilePlayer() {
             <div className="text-center py-8">
               <p className="text-muted-foreground">No track currently playing</p>
               <Button 
-                onClick={handleStartPlaying} 
+                onClick={() => handleStartPlaying()} 
                 className="mt-4"
                 disabled={isAuthenticating}
               >
