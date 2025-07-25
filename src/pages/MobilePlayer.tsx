@@ -6,7 +6,7 @@ import { Play, Pause, SkipForward, SkipBack, Volume2 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { useMobileSchedule } from '@/hooks/useMobileSchedule';
 import { useMusicPlayer } from '@/hooks/useMusicPlayer';
-import { newDeezerService } from '@/services/newDeezerService';
+
 import { ScheduleService } from '@/services/scheduleService';
 
 declare global {
@@ -28,7 +28,6 @@ export default function MobilePlayer() {
     skipBack,
     setVolume,
     loadAndPlayPlaylist,
-    isInitialized
   } = useMusicPlayer();
 
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -55,68 +54,11 @@ export default function MobilePlayer() {
     };
   }, [loadAndPlayPlaylist]);
 
-  // Auto-start with current scheduled playlist if available
-  useEffect(() => {
-    if (isInitialized && !currentTrack && currentSchedule) {
-      const activeItem = currentSchedule.items.find(item => item.isActive);
-      if (activeItem) {
-        console.log('🎵 Auto-starting with active playlist:', activeItem.playlist);
-        handleStartPlaying(); // Use default playlist for now
-      }
-    }
-  }, [isInitialized, currentTrack, currentSchedule]);
+  // Music auto-start disabled
 
   const handleStartPlaying = async (playlistId?: string) => {
-    console.log('🎵 START PLAYING BUTTON CLICKED!');
-    
-    // Check if window.DZ exists
-    console.log('📱 Window.DZ exists:', !!window.DZ);
-    if (window.DZ) {
-      console.log('📱 DZ object keys:', Object.keys(window.DZ));
-    }
-    
-    console.log('🔍 Current state:', { 
-      isInitialized, 
-      isAuthenticating,
-      DZ: !!window.DZ 
-    });
-    
-    if (!window.DZ) {
-      console.error('❌ Deezer SDK not available on window');
-      alert('Deezer SDK not loaded. Please refresh the page.');
-      return;
-    }
-
-    if (!isInitialized) {
-      console.log('🚫 Deezer initialization disabled');
-      alert('Deezer functionality has been disabled.');
-      return;
-    }
-
-    setIsAuthenticating(true);
-    try {
-      console.log('🔐 Attempting Deezer login...');
-      console.log('🔐 About to call deezerService.login()');
-      
-      // First authenticate with Deezer
-      const authenticated = await newDeezerService.login();
-      console.log('🎯 Authentication result:', authenticated);
-      
-      if (authenticated) {
-        console.log('✅ Authenticated! Loading playlist...');
-        // Use provided playlist ID or default
-        const targetPlaylistId = playlistId || '14082842421';
-        await loadAndPlayPlaylist(targetPlaylistId);
-      } else {
-        console.error('❌ Failed to authenticate with Deezer');
-        alert('Failed to authenticate with Deezer. Please try again.');
-      }
-    } catch (error) {
-      console.error('❌ Failed to start playing:', error);
-      alert('Error: ' + error);
-    } finally {
-      setIsAuthenticating(false);
-    }
+    console.log('🚫 Music playback disabled');
+    alert('Music functionality has been disabled.');
   };
 
   return (
@@ -192,11 +134,6 @@ export default function MobilePlayer() {
               >
                 {isAuthenticating ? 'Connecting...' : 'Start Playing'}
               </Button>
-              {!isInitialized && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Initializing music player...
-                </p>
-              )}
             </div>
           )}
         </CardContent>

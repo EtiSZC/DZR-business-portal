@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, Music, Play, Search, Filter, Heart, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { newDeezerService } from "@/services/newDeezerService";
+
 import { useMusicPlayer } from "@/hooks/useMusicPlayer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,15 +28,10 @@ export const PlaylistLibrary = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedMood, setSelectedMood] = useState("All");
   const [likedPlaylists, setLikedPlaylists] = useState<number[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const { loadAndPlayPlaylist } = useMusicPlayer();
 
   useEffect(() => {
     loadPlaylists();
-    // Deezer initialization disabled
-    console.log('🚫 Deezer initialization disabled in PlaylistLibrary');
-    setIsInitialized(false);
   }, []);
 
   const loadPlaylists = async () => {
@@ -54,9 +49,7 @@ export const PlaylistLibrary = () => {
   };
 
   const handlePlayPlaylist = async (playlist: Playlist) => {
-    console.log('Playing playlist:', playlist.name);
-    // Since database playlists don't have Deezer IDs yet, just log for now
-    // This can be enhanced later when real Deezer integration is added
+    console.log('Music playback disabled - playlist:', playlist.name);
   };
 
   const filteredPlaylists = playlists.filter(playlist => {
