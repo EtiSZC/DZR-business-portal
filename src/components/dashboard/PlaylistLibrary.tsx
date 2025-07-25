@@ -191,7 +191,7 @@ export const PlaylistLibrary = () => {
                 
                 <Button 
                   size="sm" 
-                  className="bg-gradient-hero hover:opacity-90"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   onClick={() => handlePlayPlaylist(playlist)}
                 >
                   <Play className="h-4 w-4 mr-2" />
