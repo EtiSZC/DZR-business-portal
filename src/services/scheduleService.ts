@@ -4,7 +4,7 @@ import * as yaml from 'js-yaml';
 export interface PlaylistSchedule {
   day: string;
   hour: number;
-  playlistId: number;
+  playlistId: string | number;
   duration: number;
 }
 
@@ -62,19 +62,23 @@ export class ScheduleService {
       const parsed = yaml.load(yamlContent) as any;
       const scheduleItems: PlaylistSchedule[] = [];
 
-      if (parsed.schedule) {
-        Object.entries(parsed.schedule).forEach(([day, daySchedule]) => {
-          Object.entries(daySchedule as any).forEach(([hour, playlistId]) => {
-            scheduleItems.push({
-              day,
-              hour: parseInt(hour),
-              playlistId: playlistId as number,
-              duration: 60 // Default duration in minutes
+      if (parsed.schedule?.week_schedule) {
+        Object.entries(parsed.schedule.week_schedule).forEach(([day, daySchedule]) => {
+          if (Array.isArray(daySchedule)) {
+            daySchedule.forEach((item: any) => {
+              const hour = parseInt(item.time.split(':')[0]);
+              scheduleItems.push({
+                day,
+                hour,
+                playlistId: item.playlist, // Use playlist name for now
+                duration: item.duration_minutes || 60
+              });
             });
-          });
+          }
         });
       }
 
+      console.log('Parsed schedule items:', scheduleItems);
       return scheduleItems;
     } catch (error) {
       console.error('Error parsing schedule:', error);
@@ -109,10 +113,21 @@ export class ScheduleService {
   private triggerPlaylistChange(schedule: PlaylistSchedule) {
     console.log(`Switching to playlist ${schedule.playlistId} at ${schedule.hour}:00`);
     
+    // For now, we'll use default playlist IDs since we need to map playlist names to Deezer IDs
+    const playlistMap: { [key: string]: string } = {
+      'Morning Energy': '14082842421',
+      'Focus Session': '14082842421', 
+      'Workout Mix': '14082842421',
+      'Chill Vibes': '14082842421',
+      'Evening Wind Down': '14082842421'
+    };
+    
+    const deezerPlaylistId = playlistMap[schedule.playlistId as string] || '14082842421';
+    
     // Dispatch custom event for the music player to listen to
     window.dispatchEvent(new CustomEvent('scheduleChange', {
       detail: {
-        playlistId: schedule.playlistId,
+        playlistId: deezerPlaylistId,
         hour: schedule.hour,
         day: schedule.day
       }

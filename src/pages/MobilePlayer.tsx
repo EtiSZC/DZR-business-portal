@@ -60,12 +60,8 @@ export default function MobilePlayer() {
     if (isInitialized && !currentTrack && currentSchedule) {
       const activeItem = currentSchedule.items.find(item => item.isActive);
       if (activeItem) {
-        // Extract playlist ID from the active item (you may need to adjust this based on your data structure)
-        const currentPlaylist = scheduleService.getCurrentPlaylist();
-        if (currentPlaylist) {
-          console.log('🎵 Auto-starting with scheduled playlist:', currentPlaylist.playlistId);
-          handleStartPlaying(currentPlaylist.playlistId.toString());
-        }
+        console.log('🎵 Auto-starting with active playlist:', activeItem.playlist);
+        handleStartPlaying(); // Use default playlist for now
       }
     }
   }, [isInitialized, currentTrack, currentSchedule]);
@@ -119,10 +115,8 @@ export default function MobilePlayer() {
       
       if (authenticated) {
         console.log('✅ Authenticated! Loading playlist...');
-        // Use provided playlist ID or get current scheduled playlist or default
-        const targetPlaylistId = playlistId || 
-          scheduleService.getCurrentPlaylist()?.playlistId.toString() || 
-          '14082842421';
+        // Use provided playlist ID or default
+        const targetPlaylistId = playlistId || '14082842421';
         await loadAndPlayPlaylist(targetPlaylistId);
       } else {
         console.error('❌ Failed to authenticate with Deezer');
