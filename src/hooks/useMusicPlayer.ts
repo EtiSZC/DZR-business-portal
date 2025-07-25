@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { deezerService } from '@/services/deezerService';
+import { newDeezerService } from '@/services/newDeezerService';
 
 interface Track {
   title: string;
@@ -23,19 +23,19 @@ export function useMusicPlayer() {
   useEffect(() => {
     const initializeDeezer = async () => {
       try {
-        const initialized = await deezerService.initialize();
+        const initialized = await newDeezerService.initialize();
         setIsInitialized(initialized);
         
         if (initialized) {
           // Set up event listeners
-          deezerService.on('play', () => setIsPlaying(true));
-          deezerService.on('pause', () => setIsPlaying(false));
-          deezerService.on('progress', (data: { position: number; duration: number }) => {
+          newDeezerService.on('play', () => setIsPlaying(true));
+          newDeezerService.on('pause', () => setIsPlaying(false));
+          newDeezerService.on('progress', (data: { position: number; duration: number }) => {
             if (data.duration > 0) {
               setProgress((data.position / data.duration) * 100);
             }
           });
-          deezerService.on('track_end', () => {
+          newDeezerService.on('track_end', () => {
             setIsPlaying(false);
             skipForward();
           });
@@ -52,9 +52,9 @@ export function useMusicPlayer() {
   useEffect(() => {
     const updateCurrentTrack = async () => {
       try {
-        const track = await deezerService.getCurrentTrack();
+        const track = await newDeezerService.getCurrentTrack();
         if (track) {
-          const position = await deezerService.getPosition();
+          const position = await newDeezerService.getPosition();
           setCurrentTrack({
             id: track.id,
             title: track.title,
@@ -90,7 +90,7 @@ export function useMusicPlayer() {
 
     setIsLoading(true);
     try {
-      await deezerService.play(trackId);
+      await newDeezerService.play(trackId);
       setIsPlaying(true);
     } catch (error) {
       console.error('Failed to play:', error);
@@ -103,7 +103,7 @@ export function useMusicPlayer() {
     if (!isInitialized) return;
     
     try {
-      await deezerService.pause();
+      await newDeezerService.pause();
       setIsPlaying(false);
     } catch (error) {
       console.error('Failed to pause:', error);
@@ -114,7 +114,7 @@ export function useMusicPlayer() {
     if (!isInitialized) return;
     
     try {
-      await deezerService.next();
+      await newDeezerService.next();
     } catch (error) {
       console.error('Failed to skip forward:', error);
     }
@@ -124,7 +124,7 @@ export function useMusicPlayer() {
     if (!isInitialized) return;
     
     try {
-      await deezerService.previous();
+      await newDeezerService.previous();
     } catch (error) {
       console.error('Failed to skip back:', error);
     }
@@ -135,7 +135,7 @@ export function useMusicPlayer() {
     
     if (isInitialized) {
       try {
-        await deezerService.setVolume(newVolume / 100);
+        await newDeezerService.setVolume(newVolume);
       } catch (error) {
         console.error('Failed to set volume:', error);
       }
@@ -147,9 +147,9 @@ export function useMusicPlayer() {
     
     setIsLoading(true);
     try {
-      const playlist = await deezerService.loadPlaylist(playlistId);
+      const playlist = await newDeezerService.loadPlaylist(playlistId);
       if (playlist && playlist.tracks.data.length > 0) {
-        await deezerService.play(playlist.tracks.data[0].id);
+        await newDeezerService.play(playlist.tracks.data[0].id);
       }
     } catch (error) {
       console.error('Failed to load playlist:', error);

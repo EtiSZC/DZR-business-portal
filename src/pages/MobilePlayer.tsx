@@ -6,7 +6,7 @@ import { Play, Pause, SkipForward, SkipBack, Volume2 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { useMobileSchedule } from '@/hooks/useMobileSchedule';
 import { useMusicPlayer } from '@/hooks/useMusicPlayer';
-import { deezerService } from '@/services/deezerService';
+import { newDeezerService } from '@/services/newDeezerService';
 
 declare global {
   interface Window {
@@ -56,7 +56,7 @@ export default function MobilePlayer() {
     if (!isInitialized) {
       console.log('⏳ Deezer not initialized, attempting to initialize...');
       try {
-        const initialized = await deezerService.initialize();
+        const initialized = await newDeezerService.initialize();
         console.log('🎯 Initialization result:', initialized);
         if (!initialized) {
           console.error('❌ Failed to initialize Deezer');
@@ -76,7 +76,7 @@ export default function MobilePlayer() {
       console.log('🔐 About to call deezerService.login()');
       
       // First authenticate with Deezer
-      const authenticated = await deezerService.login();
+      const authenticated = await newDeezerService.login();
       console.log('🎯 Authentication result:', authenticated);
       
       if (authenticated) {

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, Music, Play, Search, Filter, Heart, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { deezerService } from "@/services/deezerService";
+import { newDeezerService } from "@/services/newDeezerService";
 import { useMusicPlayer } from "@/hooks/useMusicPlayer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -35,7 +35,7 @@ export const PlaylistLibrary = () => {
   useEffect(() => {
     loadPlaylists();
     const initializeDeezer = async () => {
-      const initialized = await deezerService.initialize();
+      const initialized = await newDeezerService.initialize();
       setIsInitialized(initialized);
     };
     initializeDeezer();
