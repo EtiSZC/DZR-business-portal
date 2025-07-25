@@ -1,16 +1,26 @@
 import { supabase } from '@/integrations/supabase/client';
 
+// Configuration constants
+const DEEZER_CONFIG = {
+  APP_ID: '479982',
+  SECRET_KEY: 'c3f47f4f69a93fbeadf8845dae61874a',
+  CHANNEL_URL: 'https://b7677ff2-3e8a-4cba-af69-5cc678f36e3c.lovableproject.com/deezer-channel.html',
+  API_BASE_URL: 'https://api.deezer.com',
+  CONNECT_BASE_URL: 'https://connect.deezer.com'
+};
+
 // Utility to extract playlist ID from Deezer URL
 export function extractPlaylistId(deezerUrl: string): string | null {
   const match = deezerUrl.match(/playlist\/(\d+)/);
   return match ? match[1] : null;
 }
 
-// Deezer GraphQL API service
+// Deezer API service for content retrieval
 export class DeezerApiService {
   private static instance: DeezerApiService;
-  private appId: string = '479982';
-  private secretKey: string = 'c3f47f4f69a93fbeadf8845dae61874a';
+  private appId: string = DEEZER_CONFIG.APP_ID;
+  private secretKey: string = DEEZER_CONFIG.SECRET_KEY;
+  private accessToken: string | null = null;
   
   static getInstance(): DeezerApiService {
     if (!DeezerApiService.instance) {
@@ -19,35 +29,43 @@ export class DeezerApiService {
     return DeezerApiService.instance;
   }
 
-  // Get access token for API calls
-  private async getAccessToken(): Promise<string> {
+  // Initialize service and get access token if needed
+  async initialize(): Promise<boolean> {
     try {
-      const response = await fetch('https://connect.deezer.com/oauth/access_token.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `app_id=${this.appId}&secret=${this.secretKey}&grant_type=client_credentials`
-      });
-      
-      const data = await response.text();
-      const accessToken = data.split('=')[1]?.split('&')[0];
-      
-      if (!accessToken) {
-        throw new Error('Failed to get access token');
-      }
-      
-      return accessToken;
+      // For public API calls, we don't need authentication
+      // But we can implement OAuth flow here if needed
+      return true;
     } catch (error) {
-      console.error('Error getting access token:', error);
-      throw error;
+      console.error('Failed to initialize Deezer API service:', error);
+      return false;
     }
   }
 
-  // Fetch playlist tracks using REST API (as GraphQL might require different auth)
+  // Get access token for authenticated API calls (if needed)
+  private async getAccessToken(): Promise<string | null> {
+    if (this.accessToken) return this.accessToken;
+    
+    try {
+      // For now, we'll use public API endpoints
+      // OAuth implementation can be added here later
+      return null;
+    } catch (error) {
+      console.error('Error getting access token:', error);
+      return null;
+    }
+  }
+
+  // Fetch playlist tracks using Deezer REST API
   async getPlaylistTracks(playlistId: string): Promise<any[]> {
     try {
-      const response = await fetch(`https://api.deezer.com/playlist/${playlistId}/tracks`);
+      await this.initialize();
+      
+      const response = await fetch(`${DEEZER_CONFIG.API_BASE_URL}/playlist/${playlistId}/tracks`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.error) {
@@ -61,10 +79,17 @@ export class DeezerApiService {
     }
   }
 
-  // Get playlist info
+  // Get playlist information
   async getPlaylistInfo(playlistId: string): Promise<any> {
     try {
-      const response = await fetch(`https://api.deezer.com/playlist/${playlistId}`);
+      await this.initialize();
+      
+      const response = await fetch(`${DEEZER_CONFIG.API_BASE_URL}/playlist/${playlistId}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.error) {
@@ -79,12 +104,13 @@ export class DeezerApiService {
   }
 }
 
-// Deezer Web SDK integration
+// Deezer Web SDK integration service
 export class DeezerPlayerService {
   private static instance: DeezerPlayerService;
   private isInitialized = false;
-  private appId = '479982';
-  private channelUrl = 'https://b7677ff2-3e8a-4cba-af69-5cc678f36e3c.lovableproject.com/deezer-channel.html';
+  private appId = DEEZER_CONFIG.APP_ID;
+  private channelUrl = DEEZER_CONFIG.CHANNEL_URL;
+  private isSDKLoaded = false;
   
   static getInstance(): DeezerPlayerService {
     if (!DeezerPlayerService.instance) {
@@ -93,35 +119,74 @@ export class DeezerPlayerService {
     return DeezerPlayerService.instance;
   }
 
-  async initialize(): Promise<boolean> {
-    if (this.isInitialized) return true;
+  // Load Deezer SDK dynamically
+  private async loadSDK(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      if (this.isSDKLoaded && window.DZ) {
+        resolve(true);
+        return;
+      }
 
-    return new Promise((resolve) => {
-      // Load Deezer SDK if not already loaded
-      if (!window.DZ) {
-        const script = document.createElement('script');
+      const script = document.createElement('script');
+      script.src = '/deezer-sdk/dz.js'; // Will use local SDK when provided
+      script.onload = () => {
+        console.log('Deezer SDK loaded successfully');
+        this.isSDKLoaded = true;
+        resolve(true);
+      };
+      script.onerror = () => {
+        console.error('Failed to load Deezer SDK');
+        // Fallback to CDN version
         script.src = 'https://cdn.jsdelivr.net/npm/deezer-sdk@1.0.0/dist/dz.js';
         script.onload = () => {
-          this.initializeDeezer(resolve);
+          console.log('Deezer SDK loaded from CDN');
+          this.isSDKLoaded = true;
+          resolve(true);
         };
-        document.head.appendChild(script);
-      } else {
-        this.initializeDeezer(resolve);
-      }
+        script.onerror = () => reject(new Error('Failed to load Deezer SDK'));
+      };
+      document.head.appendChild(script);
     });
   }
 
-  private initializeDeezer(resolve: (value: boolean) => void): void {
-    window.DZ.init({
-      appId: this.appId,
-      channelUrl: this.channelUrl
-    });
+  async initialize(): Promise<boolean> {
+    if (this.isInitialized) return true;
 
-    window.DZ.ready(() => {
-      console.log('Deezer SDK initialized successfully');
-      this.isInitialized = true;
-      resolve(true);
-    });
+    try {
+      // Load SDK first
+      await this.loadSDK();
+      
+      return new Promise((resolve) => {
+        if (!window.DZ) {
+          console.error('Deezer SDK not available');
+          resolve(false);
+          return;
+        }
+
+        this.initializeDeezer(resolve);
+      });
+    } catch (error) {
+      console.error('Error initializing Deezer player:', error);
+      return false;
+    }
+  }
+
+  private initializeDeezer(resolve: (value: boolean) => void): void {
+    try {
+      window.DZ.init({
+        appId: this.appId,
+        channelUrl: this.channelUrl
+      });
+
+      window.DZ.ready(() => {
+        console.log('Deezer SDK initialized successfully');
+        this.isInitialized = true;
+        resolve(true);
+      });
+    } catch (error) {
+      console.error('Error during Deezer initialization:', error);
+      resolve(false);
+    }
   }
 
   async login(): Promise<boolean> {
