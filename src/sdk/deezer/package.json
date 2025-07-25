@@ -1,0 +1,92 @@
+{
+	"name": "deezer-sdk-web",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Allows partners to access the deezer api",
+	"homepage": "https://github.deezerdev.com/Partnership/deezer-sdk-web#readme",
+	"bugs": "https://github.deezerdev.com/Partnership/deezer-sdk-web/issues",
+	"repository": {
+		"type": "git",
+		"url": "git@github.deezerdev.com:Partnership/deezer-sdk-web.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"maintainers": [
+		"Partnership <platform@deezer.com>"
+	],
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"build": "lerna run build",
+		"build:config": "DEEZER_PLATFORM=deezerprod node ./scripts/generate-config.js",
+		"commit": "git-cz",
+		"gen": "plop",
+		"generate:licenses": "license-checker --prod --csv --out ./licenses-sdk-web-prod.csv --customPath ./customLicenseExportFormat.json && lerna run generate:licenses",
+		"lint": "npm run lint:eslint && npm run lint:prettier",
+		"lint:commit": "commitlint",
+		"lint:eslint": "eslint . --ext .js,.ts,.jsx,.tsx,.json",
+		"lint:fix": "npm run lint:eslint -- --fix && prettier -w .",
+		"lint:prettier": "prettier -c .",
+		"prerelease": "npm run lint && npm run test && npm run build",
+		"release": "lerna publish",
+		"start": "lerna run --parallel start",
+		"test": "jest",
+		"test:ci": "npm run test -- --no-cache --ci --coverage",
+		"test:coverage": "npm run test -- --coverage",
+		"test:watch": "npm run test -- --watch",
+		"update-readme": "node scripts/update-readme.js && prettier -w README.md"
+	},
+	"config": {
+		"commitizen": {
+			"path": "cz-conventional-changelog"
+		}
+	},
+	"devDependencies": {
+		"@babel/cli": "7.27.2",
+		"@babel/core": "7.27.1",
+		"@babel/plugin-proposal-class-properties": "7.18.6",
+		"@babel/plugin-proposal-object-rest-spread": "^7.20.7",
+		"@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+		"@babel/plugin-transform-runtime": "7.27.1",
+		"@babel/preset-env": "7.27.2",
+		"@babel/preset-typescript": "7.27.1",
+		"@commitlint/cli": "17.1.2",
+		"@commitlint/config-conventional": "17.1.0",
+		"@deezer/eslint-config": "1.0.13",
+		"@deezer/eslint-config-jest": "1.0.13",
+		"@deezer/eslint-config-typescript": "1.0.13",
+		"@testing-library/jest-dom": "5.16.5",
+		"@types/jest": "27.5.2",
+		"@types/jsdom": "16.2.15",
+		"@typescript-eslint/eslint-plugin": "5.40.1",
+		"@typescript-eslint/parser": "5.40.1",
+		"babel-plugin-inline-json-import": "0.3.2",
+		"commitizen": "4.2.5",
+		"cross-fetch": "3.1.5",
+		"cz-conventional-changelog": "3.3.0",
+		"eslint": "8.25.0",
+		"eslint-config-prettier": "8.5.0",
+		"eslint-plugin-jest": "27.1.3",
+		"fetch-mock": "9.11.0",
+		"jest": "27.5.1",
+		"jest-fetch-mock": "3.0.3",
+		"jsdom": "18.1.1",
+		"lerna": "5.5.4",
+		"license-checker": "25.0.1",
+		"npm-run-all": "4.1.5",
+		"plop": "3.1.1",
+		"prettier": "2.7.1",
+		"rimraf": "3.0.2",
+		"ts-jest": "27.1.5",
+		"typescript": "4.5.5",
+		"watch": "1.0.2"
+	},
+	"engines": {
+		"npm": ">=7"
+	},
+	"dependencies": {
+		"graphql": "16.10.0",
+		"graphql-request": "^7.1.2",
+		"package-json-from-dist": "^1.0.1"
+	}
+}
