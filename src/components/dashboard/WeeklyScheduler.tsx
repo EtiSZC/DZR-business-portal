@@ -326,16 +326,19 @@ export const WeeklyScheduler = () => {
   const handleResizeStart = (e: React.MouseEvent, item: ScheduledItem) => {
     e.preventDefault();
     e.stopPropagation();
-    const itemId = item.id; // Store the ID locally to avoid state timing issues
-    setResizingItem(itemId);
+    const itemId = item.id;
     const startY = e.clientY;
     const startDuration = item.duration;
+    
+    setResizingItem(itemId);
     setResizeStartY(startY);
     setResizeStartDuration(startDuration);
-    console.log("Resize start:", { startY, startDuration, itemId });
+    
+    console.log("🎯 Resize start:", { startY, startDuration, itemId });
+    
+    let currentDuration = startDuration;
     
     const handleMouseMove = (e: MouseEvent) => {
-      // Use the local values instead of state to avoid timing issues
       const deltaY = e.clientY - startY;
       
       // More reasonable sensitivity: 20px = 15 minutes (quarter hour)
@@ -343,6 +346,9 @@ export const WeeklyScheduler = () => {
       
       // Minimum duration is 15 minutes, maximum is 24 hours
       const newDuration = Math.max(15, Math.min(1440, startDuration + minutesDelta));
+      currentDuration = newDuration;
+      
+      console.log("🔄 Resize move:", { deltaY, minutesDelta, newDuration });
       
       // Update the schedule state temporarily for visual feedback
       setSchedule(prev => prev.map(schedItem => 
@@ -353,28 +359,29 @@ export const WeeklyScheduler = () => {
     };
     
     const handleMouseUp = async () => {
-      // Get the current item from schedule to get the updated duration
-      const currentSchedule = schedule;
-      const updatedItem = currentSchedule.find(schedItem => schedItem.id === itemId);
+      console.log("🔥 Mouse up triggered:", { itemId, currentDuration, startDuration });
       
-      if (!updatedItem) {
-        setResizingItem(null);
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+      setResizingItem(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      
+      // Check if duration actually changed
+      if (currentDuration === startDuration) {
+        console.log("⚡ No duration change, skipping database update");
         return;
       }
       
-      const newDuration = updatedItem.duration;
-      const newDurationInHours = Math.ceil(newDuration / 60);
+      const newDurationInHours = Math.ceil(currentDuration / 60);
       
       // Check for conflicts with other scheduled items
+      const currentSchedule = schedule.filter(schedItem => schedItem.id !== itemId);
       const hasConflict = currentSchedule.some(otherItem => 
-        otherItem.id !== itemId && 
         otherItem.day === item.day && 
         ((otherItem.hour < item.hour + newDurationInHours && otherItem.hour + Math.ceil(otherItem.duration / 60) > item.hour))
       );
       
       if (hasConflict) {
+        console.log("❌ Conflict detected, reverting");
         toast.error("Cannot resize: would conflict with another playlist");
         // Revert to original duration
         setSchedule(prev => prev.map(schedItem => 
@@ -382,49 +389,47 @@ export const WeeklyScheduler = () => {
             ? { ...schedItem, duration: startDuration }
             : schedItem
         ));
-      } else if (newDuration !== startDuration) {
-        // Only update database if duration actually changed
-        console.log("🔄 Updating duration in database:", { itemId, newDuration, startDuration });
-        
-        try {
-          const { data, error } = await supabase
-            .from('scheduled_items')
-            .update({ duration: newDuration })
-            .eq('id', itemId)
-            .select()
-            .single();
-            
-          if (error) {
-            console.error("❌ Database update failed:", error);
-            toast.error(`Failed to update playlist duration: ${error.message}`);
-            // Revert to original duration
-            setSchedule(prev => prev.map(schedItem => 
-              schedItem.id === itemId 
-                ? { ...schedItem, duration: startDuration }
-                : schedItem
-            ));
-          } else {
-            console.log("✅ Database updated successfully:", data);
-            toast.success("Playlist duration updated");
-            
-            // Force a reload of the schedule to ensure consistency
-            await loadSchedule();
-          }
-        } catch (error) {
-          console.error("❌ Unexpected error updating duration:", error);
-          toast.error("Failed to update playlist duration");
+        return;
+      }
+      
+      // Update database
+      console.log("🚀 Updating database:", { itemId, currentDuration });
+      
+      try {
+        const { data, error } = await supabase
+          .from('scheduled_items')
+          .update({ duration: currentDuration })
+          .eq('id', itemId)
+          .select()
+          .single();
+          
+        if (error) {
+          console.error("❌ Database update failed:", error);
+          toast.error(`Failed to update playlist duration: ${error.message}`);
           // Revert to original duration
           setSchedule(prev => prev.map(schedItem => 
             schedItem.id === itemId 
               ? { ...schedItem, duration: startDuration }
               : schedItem
           ));
+        } else {
+          console.log("✅ Database updated successfully:", data);
+          toast.success("Playlist duration updated");
+          
+          // Force a reload of the schedule to ensure consistency
+          console.log("🔄 Reloading schedule from database");
+          await loadSchedule();
         }
+      } catch (error) {
+        console.error("❌ Unexpected error updating duration:", error);
+        toast.error("Failed to update playlist duration");
+        // Revert to original duration
+        setSchedule(prev => prev.map(schedItem => 
+          schedItem.id === itemId 
+            ? { ...schedItem, duration: startDuration }
+            : schedItem
+        ));
       }
-      
-      setResizingItem(null);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
     };
     
     document.addEventListener('mousemove', handleMouseMove);
