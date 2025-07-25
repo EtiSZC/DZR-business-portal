@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,35 +8,49 @@ import { Calendar, Music, Play, Clock, BarChart3, Settings } from "lucide-react"
 import { WeeklyScheduler } from "@/components/dashboard/WeeklyScheduler";
 import { PlaylistLibrary } from "@/components/dashboard/PlaylistLibrary";
 
-const stats = [
-  {
-    title: "Hours Scheduled",
-    value: "17",
-    change: "Current schedule",
-    icon: Clock,
-  },
-  {
-    title: "Active Playlists",
-    value: "6",
-    change: "Available",
-    icon: Music,
-  },
-  {
-    title: "Weekly Plays (fake data)",
-    value: "1,247",
-    change: "+8.2%",
-    icon: Play,
-  },
-  {
-    title: "Venues",
-    value: "1",
-    change: "No change",
-    icon: BarChart3,
-  },
-];
-
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("schedule");
+  const [playlistCount, setPlaylistCount] = useState("0");
+
+  useEffect(() => {
+    const fetchPlaylistCount = async () => {
+      const { count } = await supabase
+        .from('playlists')
+        .select('*', { count: 'exact', head: true });
+      
+      setPlaylistCount(count?.toString() || "0");
+    };
+
+    fetchPlaylistCount();
+  }, []);
+
+  const stats = [
+    {
+      title: "Hours Scheduled",
+      value: "17",
+      change: "Current schedule",
+      icon: Clock,
+    },
+    {
+      title: "Active Playlists",
+      value: playlistCount,
+      change: "Available",
+      icon: Music,
+    },
+    {
+      title: "Weekly Plays (fake data)",
+      value: "1,247",
+      change: "+8.2%",
+      icon: Play,
+    },
+    {
+      title: "Venues",
+      value: "1",
+      change: "No change",
+      icon: BarChart3,
+    },
+  ];
+
 
   return (
     <div className="min-h-screen bg-background">
