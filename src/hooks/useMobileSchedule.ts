@@ -87,20 +87,36 @@ export function useMobileSchedule() {
       
       // Get current day
       const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-      const daySchedule = parsed.schedule?.[currentDay] || {};
+      console.log('Current day:', currentDay);
       
-      Object.entries(daySchedule).forEach(([hour, playlistId]) => {
-        const hourNum = parseInt(hour);
-        const endHour = hourNum + 1;
+      // Parse the new format with week_schedule
+      const weekSchedule = parsed.schedule?.week_schedule;
+      if (weekSchedule && weekSchedule[currentDay]) {
+        const daySchedule = weekSchedule[currentDay];
         
-        items.push({
-          playlist: `Playlist ${playlistId}`,
-          startTime: `${hourNum.toString().padStart(2, '0')}:00`,
-          endTime: `${endHour.toString().padStart(2, '0')}:00`,
-          isActive: false
-        });
-      });
+        if (Array.isArray(daySchedule)) {
+          daySchedule.forEach((item: any) => {
+            const startHour = parseInt(item.time.split(':')[0]);
+            const startMinute = parseInt(item.time.split(':')[1]);
+            const durationMinutes = item.duration_minutes || 60;
+            
+            // Calculate end time
+            const endTimeMs = new Date();
+            endTimeMs.setHours(startHour, startMinute + durationMinutes, 0, 0);
+            const endHour = endTimeMs.getHours();
+            const endMinute = endTimeMs.getMinutes();
+            
+            items.push({
+              playlist: item.playlist,
+              startTime: item.time,
+              endTime: `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`,
+              isActive: false
+            });
+          });
+        }
+      }
 
+      console.log('Parsed schedule items for display:', items);
       return {
         name: scheduleName,
         items: items.sort((a, b) => a.startTime.localeCompare(b.startTime))
@@ -121,10 +137,14 @@ export function useMobileSchedule() {
     const currentTime = currentHour + currentMinute / 60;
 
     const updatedItems = targetSchedule.items.map(item => {
-      const [startHour] = item.startTime.split(':').map(Number);
-      const [endHour] = item.endTime.split(':').map(Number);
+      const [startHour, startMinute] = item.startTime.split(':').map(Number);
+      const [endHour, endMinute] = item.endTime.split(':').map(Number);
       
-      const isActive = currentTime >= startHour && currentTime < endHour;
+      const startTimeMinutes = startHour * 60 + startMinute;
+      const endTimeMinutes = endHour * 60 + endMinute;
+      const currentTimeMinutes = currentHour * 60 + currentMinute;
+      
+      const isActive = currentTimeMinutes >= startTimeMinutes && currentTimeMinutes < endTimeMinutes;
       
       return { ...item, isActive };
     });
@@ -136,23 +156,27 @@ export function useMobileSchedule() {
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
-    const currentTime = currentHour + currentMinute / 60;
+    const currentTimeMinutes = currentHour * 60 + currentMinute;
 
     const nextItem = schedule.items.find(item => {
-      const [startHour] = item.startTime.split(':').map(Number);
-      return startHour > currentTime;
+      const [startHour, startMinute] = item.startTime.split(':').map(Number);
+      const startTimeMinutes = startHour * 60 + startMinute;
+      return startTimeMinutes > currentTimeMinutes;
     });
 
     if (nextItem) {
-      const [startHour] = nextItem.startTime.split(':').map(Number);
-      const hoursUntil = startHour - currentHour;
-      const minutesUntil = 60 - currentMinute;
+      const [startHour, startMinute] = nextItem.startTime.split(':').map(Number);
+      const startTimeMinutes = startHour * 60 + startMinute;
+      const minutesUntil = startTimeMinutes - currentTimeMinutes;
+      
+      const hoursUntil = Math.floor(minutesUntil / 60);
+      const remainingMinutes = minutesUntil % 60;
       
       let timeUntil = '';
       if (hoursUntil > 0) {
-        timeUntil = `${hoursUntil}h ${minutesUntil}m`;
+        timeUntil = `${hoursUntil}h ${remainingMinutes}m`;
       } else {
-        timeUntil = `${minutesUntil}m`;
+        timeUntil = `${remainingMinutes}m`;
       }
 
       setNextPlaylist({
