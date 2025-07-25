@@ -315,10 +315,10 @@ export const WeeklyScheduler = () => {
       // Use the local itemId instead of state resizingItem to avoid timing issues
       const deltaY = e.clientY - resizeStartY;
       
-      // Very conservative calculation: every 40px = 15 minutes (same as one hour slot height)
-      const pixelsPer15Min = 40;
-      const quartersDelta = Math.floor(deltaY / pixelsPer15Min); // Use floor for more control
-      const minutesDelta = quartersDelta * 15;
+      // Reasonable calculation: every 30px = 30 minutes (half hour slot)
+      const pixelsPer30Min = 30;
+      const halfHoursDelta = Math.round(deltaY / pixelsPer30Min);
+      const minutesDelta = halfHoursDelta * 30;
       
       // Minimum duration is 15 minutes, maximum is 24 hours
       const newDuration = Math.max(15, Math.min(1440, resizeStartDuration + minutesDelta));
