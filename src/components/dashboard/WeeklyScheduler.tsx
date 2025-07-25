@@ -50,6 +50,7 @@ export const WeeklyScheduler = () => {
   const [resizingItem, setResizingItem] = useState<string | null>(null);
   const [resizeStartY, setResizeStartY] = useState<number>(0);
   const [resizeStartDuration, setResizeStartDuration] = useState<number>(0);
+  const [draggingScheduledItem, setDraggingScheduledItem] = useState<ScheduledItem | null>(null);
 
   useEffect(() => {
     loadPlaylists();
@@ -103,6 +104,14 @@ export const WeeklyScheduler = () => {
     e.dataTransfer.setData("text/plain", playlistId.toString());
     e.dataTransfer.setData("application/json", JSON.stringify({ playlistId, type: "playlist" }));
     setSelectedPlaylist(playlistId);
+  };
+
+  const handleScheduledItemDragStart = (e: React.DragEvent, scheduledItem: ScheduledItem) => {
+    console.log("🎯 Drag started for scheduled item:", scheduledItem);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("application/json", JSON.stringify({ scheduledItem, type: "scheduled" }));
+    setDraggingScheduledItem(scheduledItem);
+    e.stopPropagation();
   };
 
   const handleDragOver = (e: React.DragEvent, day: string, hour: number) => {
@@ -197,7 +206,68 @@ export const WeeklyScheduler = () => {
   const handleDrop = async (e: React.DragEvent, day: string, hour: number) => {
     e.preventDefault();
     console.log("🔥 DROP EVENT FIRED!");
-    await placePlaylist(day, hour);
+    
+    try {
+      const dragData = JSON.parse(e.dataTransfer.getData("application/json"));
+      
+      if (dragData.type === "scheduled") {
+        // Moving an existing scheduled item
+        await moveScheduledItem(dragData.scheduledItem, day, hour);
+      } else {
+        // Placing a new playlist
+        await placePlaylist(day, hour);
+      }
+    } catch (error) {
+      // Fallback to old behavior if JSON parsing fails
+      await placePlaylist(day, hour);
+    }
+    
+    setDraggingScheduledItem(null);
+    setDragOverSlot(null);
+  };
+
+  const moveScheduledItem = async (item: ScheduledItem, newDay: string, newHour: number) => {
+    // Check if moving to the same position
+    if (item.day === newDay && item.hour === newHour) {
+      return;
+    }
+
+    const durationInHours = Math.ceil(item.duration / 60);
+    
+    // Check for conflicts (excluding the item being moved)
+    const hasConflict = schedule.some(otherItem => 
+      otherItem.id !== item.id &&
+      otherItem.day === newDay && 
+      ((otherItem.hour <= newHour && otherItem.hour + Math.ceil(otherItem.duration / 60) > newHour) ||
+       (newHour <= otherItem.hour && newHour + durationInHours > otherItem.hour))
+    );
+
+    if (hasConflict) {
+      toast.error("Cannot move playlist: time slot conflict!");
+      return;
+    }
+
+    // Update in database
+    const { error } = await supabase
+      .from('scheduled_items')
+      .update({ day: newDay, hour: newHour })
+      .eq('id', item.id);
+
+    if (error) {
+      toast.error("Failed to move playlist");
+      console.error(error);
+      return;
+    }
+
+    // Update local state
+    setSchedule(schedule.map(schedItem => 
+      schedItem.id === item.id 
+        ? { ...schedItem, day: newDay, hour: newHour }
+        : schedItem
+    ));
+
+    const playlist = getPlaylistById(item.playlist_id);
+    toast.success(`${playlist?.name} moved to ${newDay} at ${newHour}:00!`);
   };
 
   const removeScheduledItem = async (id: string) => {
@@ -567,7 +637,7 @@ export const WeeklyScheduler = () => {
                     >
                       {scheduledItem && isFirstHour && playlist && (
                         <div
-                          className={`absolute rounded p-1 group border-l-4 text-xs ${playlist.color} bg-opacity-20 border-opacity-80`}
+                          className={`absolute rounded p-1 group border-l-4 text-xs ${playlist.color} bg-opacity-20 border-opacity-80 cursor-move`}
                           style={{ 
                             left: '4px',
                             right: '4px',
@@ -575,6 +645,8 @@ export const WeeklyScheduler = () => {
                             height: `${Math.ceil(scheduledItem.duration / 60) * 40 - 4}px`,
                             zIndex: 10
                           }}
+                          draggable
+                          onDragStart={(e) => handleScheduledItemDragStart(e, scheduledItem)}
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-medium text-foreground truncate text-xs">
