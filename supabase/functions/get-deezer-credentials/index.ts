@@ -12,10 +12,11 @@ serve(async (req) => {
 
   try {
     const deezerAppId = Deno.env.get('DEEZER_APP_ID')
+    const deezerSecret = Deno.env.get('DEEZER_SECRET')
     
-    if (!deezerAppId) {
+    if (!deezerAppId || !deezerSecret) {
       return new Response(
-        JSON.stringify({ error: 'Deezer App ID not configured' }),
+        JSON.stringify({ error: 'Deezer credentials not configured' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -24,7 +25,10 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ appId: deezerAppId }),
+      JSON.stringify({ 
+        appId: deezerAppId,
+        secret: deezerSecret 
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
