@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           color: string
           created_at: string
+          deezer_url: string | null
           duration: number
           id: number
           name: string
@@ -26,6 +27,7 @@ export type Database = {
         Insert: {
           color?: string
           created_at?: string
+          deezer_url?: string | null
           duration?: number
           id?: number
           name: string
@@ -34,6 +36,7 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string
+          deezer_url?: string | null
           duration?: number
           id?: number
           name?: string
