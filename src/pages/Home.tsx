@@ -54,10 +54,6 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/5"></div>
         <div className="container relative z-10">
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
-              <Zap className="w-4 h-4 mr-2" />
-              Now Available for Independent Venues
-            </Badge>
             
             <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
               Professional Background Music

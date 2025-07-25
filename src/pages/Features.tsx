@@ -108,10 +108,6 @@ export default function Features() {
       {/* Hero Section */}
       <section className="py-20 bg-primary text-white">
         <div className="container text-center space-y-6">
-          <Badge className="bg-white/20 text-white border-white/30">
-            <Zap className="w-4 h-4 mr-2" />
-            Professional Music Solution
-          </Badge>
           <h1 className="text-4xl lg:text-6xl font-bold">Powerful Features for Your Business</h1>
           <p className="text-xl text-white/90 max-w-3xl mx-auto">
             Everything you need to create the perfect atmosphere for your customers, 

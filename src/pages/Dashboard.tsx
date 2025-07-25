@@ -10,25 +10,25 @@ import { PlaylistLibrary } from "@/components/dashboard/PlaylistLibrary";
 const stats = [
   {
     title: "Hours Scheduled",
-    value: "156",
-    change: "+12%",
+    value: "17",
+    change: "Current schedule",
     icon: Clock,
   },
   {
     title: "Active Playlists",
-    value: "24",
-    change: "+3",
+    value: "6",
+    change: "Available",
     icon: Music,
   },
   {
-    title: "Weekly Plays",
+    title: "Weekly Plays (fake data)",
     value: "1,247",
     change: "+8.2%",
     icon: Play,
   },
   {
     title: "Venues",
-    value: "3",
+    value: "1",
     change: "No change",
     icon: BarChart3,
   },
@@ -71,7 +71,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.change} from last week</p>
+                <p className="text-xs text-muted-foreground">{stat.change}</p>
               </CardContent>
             </Card>
           ))}
