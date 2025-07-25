@@ -8,77 +8,17 @@ import { Clock, Music, Play, Search, Filter, Heart, MoreVertical } from "lucide-
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { deezerService } from "@/services/deezerService";
 import { useMusicPlayer } from "@/hooks/useMusicPlayer";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Real Deezer playlists with mock fallbacks
-const playlists = [
-  {
-    id: 1,
-    name: "Morning Energy",
-    category: "Coffee Shop",
-    duration: "2h 15m",
-    tracks: 34,
-    mood: "Energetic",
-    description: "High-energy tracks to kickstart your morning",
-    image: "⚡",
-    isLiked: true,
-    deezerPlaylistId: "14082842421", // Real Deezer playlist
-  },
-  {
-    id: 2,
-    name: "Lunch Rush Energy",
-    category: "Restaurant",
-    duration: "3h 45m",
-    tracks: 52,
-    mood: "Upbeat",
-    description: "Energetic tunes to keep the pace during busy lunch hours",
-    image: "🎶",
-    isLiked: false,
-  },
-  {
-    id: 3,
-    name: "Afternoon Acoustic",
-    category: "Cafe",
-    duration: "4h 20m",
-    tracks: 68,
-    mood: "Mellow",
-    description: "Gentle acoustic sounds for a peaceful afternoon atmosphere",
-    image: "🎸",
-    isLiked: true,
-  },
-  {
-    id: 4,
-    name: "Dinner Jazz Classics",
-    category: "Fine Dining",
-    duration: "3h 30m",
-    tracks: 45,
-    mood: "Sophisticated",
-    description: "Timeless jazz standards for an elegant dining experience",
-    image: "🎺",
-    isLiked: false,
-  },
-  {
-    id: 5,
-    name: "Evening Lounge",
-    category: "Bar",
-    duration: "2h 50m",
-    tracks: 38,
-    mood: "Ambient",
-    description: "Smooth lounge music for evening relaxation",
-    image: "🍸",
-    isLiked: true,
-  },
-  {
-    id: 6,
-    name: "Retail Pop Hits",
-    category: "Retail",
-    duration: "5h 15m",
-    tracks: 84,
-    mood: "Energetic",
-    description: "Popular hits to create an upbeat shopping environment",
-    image: "🛍️",
-    isLiked: false,
-  },
-];
+interface Playlist {
+  id: number;
+  name: string;
+  duration: number;
+  color: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 const categories = ["All", "Coffee Shop", "Restaurant", "Cafe", "Fine Dining", "Bar", "Retail"];
 const moods = ["All", "Relaxed", "Upbeat", "Mellow", "Sophisticated", "Ambient", "Energetic"];
@@ -87,11 +27,13 @@ export const PlaylistLibrary = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedMood, setSelectedMood] = useState("All");
-  const [likedPlaylists, setLikedPlaylists] = useState<number[]>([1, 3, 5]);
+  const [likedPlaylists, setLikedPlaylists] = useState<number[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const { loadAndPlayPlaylist } = useMusicPlayer();
 
   useEffect(() => {
+    loadPlaylists();
     const initializeDeezer = async () => {
       const initialized = await deezerService.initialize();
       setIsInitialized(initialized);
@@ -99,25 +41,30 @@ export const PlaylistLibrary = () => {
     initializeDeezer();
   }, []);
 
-  const handlePlayPlaylist = async (playlist: any) => {
-    if (playlist.deezerPlaylistId && isInitialized) {
-      try {
-        await loadAndPlayPlaylist(playlist.deezerPlaylistId);
-      } catch (error) {
-        console.error('Failed to play Deezer playlist:', error);
-      }
-    } else {
-      console.log('Playing mock playlist:', playlist.name);
+  const loadPlaylists = async () => {
+    const { data, error } = await supabase
+      .from('playlists')
+      .select('*');
+    
+    if (error) {
+      toast.error("Failed to load playlists");
+      console.error(error);
+      return;
     }
+    
+    setPlaylists(data || []);
+  };
+
+  const handlePlayPlaylist = async (playlist: Playlist) => {
+    console.log('Playing playlist:', playlist.name);
+    // Since database playlists don't have Deezer IDs yet, just log for now
+    // This can be enhanced later when real Deezer integration is added
   };
 
   const filteredPlaylists = playlists.filter(playlist => {
-    const matchesSearch = playlist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         playlist.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All" || playlist.category === selectedCategory;
-    const matchesMood = selectedMood === "All" || playlist.mood === selectedMood;
-    
-    return matchesSearch && matchesCategory && matchesMood;
+    const matchesSearch = playlist.name.toLowerCase().includes(searchTerm.toLowerCase());
+    // For now, just filter by search term since database playlists don't have category/mood
+    return matchesSearch;
   });
 
   const toggleLike = (playlistId: number) => {
@@ -190,10 +137,10 @@ export const PlaylistLibrary = () => {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="text-2xl">{playlist.image}</div>
+                  <div className={`w-4 h-4 rounded-full ${playlist.color}`}></div>
                   <div className="flex-1">
                     <CardTitle className="text-lg">{playlist.name}</CardTitle>
-                    <CardDescription className="text-sm">{playlist.category}</CardDescription>
+                    <CardDescription className="text-sm">Music Playlist</CardDescription>
                   </div>
                 </div>
                 
@@ -213,24 +160,20 @@ export const PlaylistLibrary = () => {
             </CardHeader>
             
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">{playlist.description}</p>
+              <p className="text-sm text-muted-foreground">Music playlist for your venue</p>
               
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <div className="flex items-center space-x-1">
                   <Clock className="h-4 w-4" />
-                  <span>{playlist.duration}</span>
+                  <span>{Math.floor(playlist.duration / 60)}h {playlist.duration % 60}m</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Music className="h-4 w-4" />
-                  <span>{playlist.tracks} tracks</span>
+                  <span>Mixed tracks</span>
                 </div>
               </div>
               
               <div className="flex items-center justify-between">
-                <Badge className={getMoodColor(playlist.mood)}>
-                  {playlist.mood}
-                </Badge>
-                
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="ghost"
