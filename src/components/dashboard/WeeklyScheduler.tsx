@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,11 +51,31 @@ export const WeeklyScheduler = () => {
   const [resizeStartY, setResizeStartY] = useState<number>(0);
   const [resizeStartDuration, setResizeStartDuration] = useState<number>(0);
   const [draggingScheduledItem, setDraggingScheduledItem] = useState<ScheduledItem | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadPlaylists();
     loadSchedule();
   }, []);
+
+  // Autoscroll to 07:00 when component loads
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      // Each hour row is 40px + 1px border = 41px
+      // To scroll to 07:00, we need to scroll 7 * 41px = 287px
+      const scrollTo = 7 * 41;
+      
+      // Use setTimeout to ensure the scroll happens after render
+      setTimeout(() => {
+        if (scrollAreaRef.current) {
+          const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+          if (viewport) {
+            viewport.scrollTop = scrollTo;
+          }
+        }
+      }, 100);
+    }
+  }, [playlists, schedule]); // Re-run when data loads
 
   const loadPlaylists = async () => {
     const { data, error } = await supabase
@@ -607,7 +627,7 @@ export const WeeklyScheduler = () => {
             ))}
           </div>
 
-          <ScrollArea className="h-[400px]">
+          <ScrollArea className="h-[400px]" ref={scrollAreaRef}>
             {hours.map((hour) => (
               <div key={hour} className="grid grid-cols-8 border-b last:border-b-0">
                 <div className="p-2 text-sm text-center border-r bg-muted/20 font-medium">
