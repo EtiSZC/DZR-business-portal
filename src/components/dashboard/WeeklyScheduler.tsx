@@ -641,7 +641,7 @@ export const WeeklyScheduler = () => {
             ))}
           </div>
 
-          <ScrollArea className="h-[400px]" ref={scrollAreaRef}>
+          <ScrollArea className="h-[580px]" ref={scrollAreaRef}>
             {hours.map((hour) => (
               <div key={hour} className="grid grid-cols-8 border-b last:border-b-0">
                 <div className="p-2 text-sm text-center border-r bg-muted/20 font-medium">
