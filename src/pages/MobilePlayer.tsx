@@ -6,6 +6,7 @@ import { Play, Pause, SkipForward, SkipBack, Volume2 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { useMobileSchedule } from '@/hooks/useMobileSchedule';
 import { useMusicPlayer } from '@/hooks/useMusicPlayer';
+import { supabase } from '@/integrations/supabase/client';
 
 import { ScheduleService } from '@/services/scheduleService';
 
@@ -22,12 +23,15 @@ export default function MobilePlayer() {
     currentTrack, 
     progress, 
     volume,
+    isLoading: playerLoading,
+    isAuthenticated,
     play, 
     pause, 
     skipForward, 
     skipBack,
     setVolume,
     loadAndPlayPlaylist,
+    authenticate
   } = useMusicPlayer();
 
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -56,9 +60,39 @@ export default function MobilePlayer() {
 
   // Music auto-start disabled
 
-  const handleStartPlaying = async (playlistId?: string) => {
-    console.log('🚫 Music playback disabled');
-    alert('Music functionality has been disabled.');
+  const handleStartPlaying = async () => {
+    try {
+      if (!isAuthenticated) {
+        setIsAuthenticating(true);
+        const authSuccess = await authenticate();
+        if (!authSuccess) {
+          alert('Failed to authenticate with Deezer. Please try again.');
+          return;
+        }
+      }
+      
+      // If we have a current schedule, play the active playlist
+      if (currentSchedule?.items) {
+        const activeItem = currentSchedule.items.find(item => item.isActive);
+        if (activeItem) {
+          // Find the playlist in database to get deezer_url
+          const { data: playlists } = await supabase
+            .from('playlists')
+            .select('deezer_url')
+            .eq('name', activeItem.playlist)
+            .single();
+            
+          if (playlists?.deezer_url) {
+            await loadAndPlayPlaylist(playlists.deezer_url);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error starting playback:', error);
+      alert('Failed to start playback. Please try again.');
+    } finally {
+      setIsAuthenticating(false);
+    }
   };
 
   return (
@@ -130,9 +164,9 @@ export default function MobilePlayer() {
               <Button 
                 onClick={() => handleStartPlaying()} 
                 className="mt-4"
-                disabled={isAuthenticating}
+                disabled={isAuthenticating || playerLoading}
               >
-                {isAuthenticating ? 'Connecting...' : 'Start Playing'}
+                {isAuthenticating || playerLoading ? 'Connecting...' : 'Start Playing'}
               </Button>
             </div>
           )}

@@ -16,6 +16,7 @@ interface Playlist {
   name: string;
   duration: number;
   color: string;
+  deezer_url?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -48,8 +49,20 @@ export const PlaylistLibrary = () => {
     setPlaylists(data || []);
   };
 
+  const { loadAndPlayPlaylist, isLoading: playerLoading } = useMusicPlayer();
+
   const handlePlayPlaylist = async (playlist: Playlist) => {
-    console.log('Music playback disabled - playlist:', playlist.name);
+    if (playlist.deezer_url) {
+      try {
+        await loadAndPlayPlaylist(playlist.deezer_url);
+        toast.success(`Playing: ${playlist.name}`);
+      } catch (error) {
+        toast.error('Failed to play playlist');
+        console.error('Error playing playlist:', error);
+      }
+    } else {
+      toast.error('No Deezer URL found for this playlist');
+    }
   };
 
   const filteredPlaylists = playlists.filter(playlist => {
@@ -184,9 +197,10 @@ export const PlaylistLibrary = () => {
                   size="sm" 
                   className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm border-0"
                   onClick={() => handlePlayPlaylist(playlist)}
+                  disabled={playerLoading}
                 >
                   <Play className="h-4 w-4 mr-2 fill-current" />
-                  Play
+                  {playerLoading ? 'Loading...' : 'Play'}
                 </Button>
               </div>
             </CardContent>
