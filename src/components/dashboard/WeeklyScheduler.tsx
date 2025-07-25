@@ -641,44 +641,51 @@ export const WeeklyScheduler = () => {
                     >
                       {scheduledItem && isFirstHour && playlist && (
                         <div
-                          className={`absolute rounded p-1 group border-l-4 text-xs ${playlist.color} bg-opacity-20 border-opacity-80 cursor-move`}
+                          className={`absolute rounded p-1 group border-l-4 text-xs ${playlist.color} bg-opacity-20 border-opacity-80 cursor-move pointer-events-none`}
                           style={{ 
                             left: '4px',
                             right: '4px',
                             top: '4px',
                             height: `${Math.ceil(scheduledItem.duration / 60) * 40 - 4}px`,
-                            zIndex: 10
+                            zIndex: 5
                           }}
-                          draggable
-                          onDragStart={(e) => handleScheduledItemDragStart(e, scheduledItem)}
                         >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-foreground truncate text-xs">
-                              {playlist.name}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => removeScheduledItem(scheduledItem.id)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {Math.floor(scheduledItem.duration / 60)}h {scheduledItem.duration % 60}m
-                          </div>
-                          {/* Resize handle positioned at the actual bottom of the visual block */}
-                          <div 
-                            className="absolute left-0 right-0 h-3 cursor-ns-resize hover:bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                            style={{ 
-                              bottom: '-1px',
-                              backgroundColor: 'rgba(0,0,0,0.1)'
+                          <div
+                            className="w-full h-full pointer-events-auto"
+                            draggable
+                            onDragStart={(e) => {
+                              console.log("🎯 Drag started for scheduled item:", scheduledItem);
+                              handleScheduledItemDragStart(e, scheduledItem);
                             }}
-                            onMouseDown={(e) => handleResizeStart(e, scheduledItem)}
-                            title="Drag to resize playlist duration"
                           >
-                            <div className="w-12 h-1 bg-foreground/70 rounded-full"></div>
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-foreground truncate text-xs">
+                                {playlist.name}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => removeScheduledItem(scheduledItem.id)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {Math.floor(scheduledItem.duration / 60)}h {scheduledItem.duration % 60}m
+                            </div>
+                            {/* Resize handle positioned at the actual bottom of the visual block */}
+                            <div 
+                              className="absolute left-0 right-0 h-3 cursor-ns-resize hover:bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                              style={{ 
+                                bottom: '-1px',
+                                backgroundColor: 'rgba(0,0,0,0.1)'
+                              }}
+                              onMouseDown={(e) => handleResizeStart(e, scheduledItem)}
+                              title="Drag to resize playlist duration"
+                            >
+                              <div className="w-12 h-1 bg-foreground/70 rounded-full"></div>
+                            </div>
                           </div>
                         </div>
                       )}
