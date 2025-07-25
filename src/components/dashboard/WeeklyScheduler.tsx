@@ -314,14 +314,15 @@ export const WeeklyScheduler = () => {
     const handleMouseMove = (e: MouseEvent) => {
       // Use the local itemId instead of state resizingItem to avoid timing issues
       const deltaY = e.clientY - resizeStartY;
+      console.log("Resize debug:", { deltaY, resizeStartY, currentY: e.clientY, resizeStartDuration });
       
-      // Reasonable calculation: every 30px = 30 minutes (half hour slot)
-      const pixelsPer30Min = 30;
-      const halfHoursDelta = Math.round(deltaY / pixelsPer30Min);
-      const minutesDelta = halfHoursDelta * 30;
+      // Very conservative: only allow 15-minute changes per 50px movement
+      const minutesDelta = Math.round(deltaY / 50) * 15;
+      console.log("Minutes delta:", minutesDelta);
       
       // Minimum duration is 15 minutes, maximum is 24 hours
       const newDuration = Math.max(15, Math.min(1440, resizeStartDuration + minutesDelta));
+      console.log("New duration:", newDuration, "hours:", Math.floor(newDuration / 60), "minutes:", newDuration % 60);
       
       // Update the schedule state temporarily for visual feedback
       setSchedule(prev => prev.map(schedItem => 
