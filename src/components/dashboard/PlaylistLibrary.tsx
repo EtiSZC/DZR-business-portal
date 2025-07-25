@@ -191,10 +191,10 @@ export const PlaylistLibrary = () => {
                 
                 <Button 
                   size="sm" 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm border-0"
                   onClick={() => handlePlayPlaylist(playlist)}
                 >
-                  <Play className="h-4 w-4 mr-2" />
+                  <Play className="h-4 w-4 mr-2 fill-current" />
                   Play
                 </Button>
               </div>
