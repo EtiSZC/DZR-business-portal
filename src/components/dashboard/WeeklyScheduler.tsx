@@ -118,11 +118,10 @@ export const WeeklyScheduler = () => {
     e.preventDefault();
     e.stopPropagation();
     if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = "copy";
+      e.dataTransfer.dropEffect = draggingScheduledItem ? "move" : "copy";
     }
     const slotKey = `${day}-${hour}`;
     setDragOverSlot(slotKey);
-    console.log("🎯 Drag over slot:", slotKey);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -316,10 +315,12 @@ export const WeeklyScheduler = () => {
       // Use the local itemId instead of state resizingItem to avoid timing issues
       const deltaY = e.clientY - resizeStartY;
       const hourHeight = 40; // Each hour slot is 40px
-      const hoursDelta = Math.round(deltaY / hourHeight);
+      
+      // Use finer granularity - 15 minute increments instead of full hours
+      const minutesDelta = Math.round((deltaY / hourHeight) * 60 / 15) * 15; // Round to nearest 15 minutes
       
       // Minimum duration is 15 minutes, maximum is 24 hours
-      const newDuration = Math.max(15, Math.min(1440, resizeStartDuration + (hoursDelta * 60)));
+      const newDuration = Math.max(15, Math.min(1440, resizeStartDuration + minutesDelta));
       
       // Update the schedule state temporarily for visual feedback
       setSchedule(prev => prev.map(schedItem => 
@@ -641,17 +642,19 @@ export const WeeklyScheduler = () => {
                     >
                       {scheduledItem && isFirstHour && playlist && (
                         <div
-                          className={`absolute rounded p-1 group border-l-4 text-xs ${playlist.color} bg-opacity-20 border-opacity-80 cursor-move pointer-events-none`}
+                          className={`absolute rounded p-1 group border-l-4 text-xs ${playlist.color} bg-opacity-20 border-opacity-80`}
                           style={{ 
                             left: '4px',
                             right: '4px',
                             top: '4px',
                             height: `${Math.ceil(scheduledItem.duration / 60) * 40 - 4}px`,
-                            zIndex: 5
+                            zIndex: 1,
+                            pointerEvents: 'none'
                           }}
                         >
                           <div
-                            className="w-full h-full pointer-events-auto"
+                            className="w-full h-full cursor-move"
+                            style={{ pointerEvents: 'auto' }}
                             draggable
                             onDragStart={(e) => {
                               console.log("🎯 Drag started for scheduled item:", scheduledItem);
