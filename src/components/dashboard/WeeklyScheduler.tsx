@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Clock, Plus, X } from "lucide-react";
+import { Clock, Plus, X, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import * as yaml from 'js-yaml';
@@ -51,11 +51,13 @@ export const WeeklyScheduler = () => {
   const [resizeStartY, setResizeStartY] = useState<number>(0);
   const [resizeStartDuration, setResizeStartDuration] = useState<number>(0);
   const [draggingScheduledItem, setDraggingScheduledItem] = useState<ScheduledItem | null>(null);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadPlaylists();
     loadSchedule();
+    loadDownloadUrl();
   }, []);
 
   // Autoscroll to 07:00 when component loads
@@ -109,6 +111,20 @@ export const WeeklyScheduler = () => {
     }
     
     setSchedule(data || []);
+  };
+
+  const loadDownloadUrl = async () => {
+    try {
+      const { data } = await supabase.storage
+        .from('schedules')
+        .getPublicUrl('my-schedule.yml');
+      
+      if (data?.publicUrl) {
+        setDownloadUrl(data.publicUrl);
+      }
+    } catch (error) {
+      console.log('No existing schedule file found');
+    }
   };
 
   const getPlaylistById = (id: number) => playlists.find(p => p.id === id);
@@ -472,8 +488,26 @@ export const WeeklyScheduler = () => {
   const saveScheduleAsYAML = async () => {
     try {
       const yamlContent = generateScheduleYAML();
+      const fileName = `my-schedule.yml`;
       
-      const { data, error } = await supabase
+      // Create a Blob and upload to storage
+      const yamlBlob = new Blob([yamlContent], { type: 'text/yaml' });
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('schedules')
+        .upload(fileName, yamlBlob, {
+          upsert: true,
+          contentType: 'text/yaml'
+        });
+
+      if (uploadError) {
+        toast.error("Failed to save schedule file");
+        console.error(uploadError);
+        return;
+      }
+
+      // Also save to database for backward compatibility
+      const { data: dbData, error: dbError } = await supabase
         .from('saved_schedules')
         .upsert({
           name: 'My Schedule',
@@ -484,10 +518,18 @@ export const WeeklyScheduler = () => {
         .select()
         .single();
 
-      if (error) {
-        toast.error("Failed to save schedule");
-        console.error(error);
-        return;
+      if (dbError) {
+        console.error("Database save error:", dbError);
+        // Don't fail the whole operation if database save fails
+      }
+
+      // Update the download URL
+      const { data: urlData } = await supabase.storage
+        .from('schedules')
+        .getPublicUrl(fileName);
+      
+      if (urlData?.publicUrl) {
+        setDownloadUrl(urlData.publicUrl);
       }
 
       toast.success("Schedule saved successfully!");
@@ -498,6 +540,19 @@ export const WeeklyScheduler = () => {
   };
 
   const downloadSchedule = async () => {
+    if (downloadUrl) {
+      // If we have a direct URL, use it
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `music-schedule-${new Date().toISOString().split('T')[0]}.yml`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Schedule downloaded successfully!");
+      return;
+    }
+
+    // Fallback to database method
     try {
       const { data, error } = await supabase
         .from('saved_schedules')
@@ -532,6 +587,23 @@ export const WeeklyScheduler = () => {
     toast.success("Schedule downloaded successfully!");
   };
 
+  const copyDownloadUrl = () => {
+    if (downloadUrl) {
+      navigator.clipboard.writeText(downloadUrl);
+      toast.success("Download URL copied to clipboard!");
+    } else {
+      toast.error("No download URL available. Please save your schedule first.");
+    }
+  };
+
+  const openDownloadUrl = () => {
+    if (downloadUrl) {
+      window.open(downloadUrl, '_blank');
+    } else {
+      toast.error("No download URL available. Please save your schedule first.");
+    }
+  };
+
   const eraseSchedule = async () => {
     try {
       // Delete all scheduled items from database
@@ -548,6 +620,7 @@ export const WeeklyScheduler = () => {
 
       // Clear local schedule state
       setSchedule([]);
+      setDownloadUrl(null);
       toast.success("Schedule erased successfully!");
     } catch (err) {
       console.error("Error erasing schedule:", err);
@@ -592,6 +665,40 @@ export const WeeklyScheduler = () => {
           </div>
         </ScrollArea>
       </div>
+
+      {/* Download URL Display */}
+      {downloadUrl && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h4 className="font-medium text-green-800 mb-1">Direct Download URL</h4>
+                <p className="text-xs text-green-600 break-all font-mono bg-white p-2 rounded border">
+                  {downloadUrl}
+                </p>
+              </div>
+              <div className="flex space-x-2 ml-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyDownloadUrl}
+                  className="text-green-700 border-green-300 hover:bg-green-100"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openDownloadUrl}
+                  className="text-green-700 border-green-300 hover:bg-green-100"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Weekly Calendar */}
       <div className="space-y-4">
