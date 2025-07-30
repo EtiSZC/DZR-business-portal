@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Clock, Plus, X, Copy, ExternalLink } from "lucide-react";
+import { Clock, Plus, X, Copy, ExternalLink, Download } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import * as yaml from 'js-yaml';
@@ -57,7 +57,7 @@ export const WeeklyScheduler = () => {
   useEffect(() => {
     loadPlaylists();
     loadSchedule();
-    loadDownloadUrl();
+    checkStorageBucketAndLoadUrl();
   }, []);
 
   // Autoscroll to 07:00 when component loads
@@ -113,17 +113,46 @@ export const WeeklyScheduler = () => {
     setSchedule(data || []);
   };
 
-  const loadDownloadUrl = async () => {
+  const checkStorageBucketAndLoadUrl = async () => {
     try {
-      const { data } = await supabase.storage
-        .from('schedules')
-        .getPublicUrl('my-schedule.yml');
+      // Check if the schedules bucket exists
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
       
-      if (data?.publicUrl) {
-        setDownloadUrl(data.publicUrl);
+      if (bucketsError) {
+        console.error('Error checking buckets:', bucketsError);
+        return;
+      }
+
+      const schedulesBucket = buckets?.find(bucket => bucket.name === 'schedules');
+      
+      if (!schedulesBucket) {
+        console.log('Schedules bucket does not exist');
+        return;
+      }
+
+      // Check if the file exists
+      const { data: files, error: filesError } = await supabase.storage
+        .from('schedules')
+        .list('', { limit: 100 });
+
+      if (filesError) {
+        console.error('Error listing files:', filesError);
+        return;
+      }
+
+      const scheduleFile = files?.find(file => file.name === 'my-schedule.yml');
+      
+      if (scheduleFile) {
+        const { data } = await supabase.storage
+          .from('schedules')
+          .getPublicUrl('my-schedule.yml');
+        
+        if (data?.publicUrl) {
+          setDownloadUrl(data.publicUrl);
+        }
       }
     } catch (error) {
-      console.log('No existing schedule file found');
+      console.error('Error checking storage:', error);
     }
   };
 
@@ -452,23 +481,65 @@ export const WeeklyScheduler = () => {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  const sanitizeForYaml = (text: string): string => {
+    // Sanitize text for YAML to prevent injection attacks
+    if (!text || typeof text !== 'string') return 'Unknown';
+    return text.replace(/[^\w\s-]/g, '').trim() || 'Unknown';
+  };
+
+  const validateScheduleData = (): boolean => {
+    // Validate schedule data before generating YAML
+    if (!Array.isArray(schedule) || schedule.length === 0) {
+      toast.error("No schedule items to save");
+      return false;
+    }
+
+    const invalidItems = schedule.filter(item => 
+      !item.day || 
+      typeof item.hour !== 'number' || 
+      item.hour < 0 || 
+      item.hour > 23 ||
+      typeof item.duration !== 'number' ||
+      item.duration <= 0 ||
+      item.duration > 1440 // Max 24 hours
+    );
+
+    if (invalidItems.length > 0) {
+      toast.error("Invalid schedule items detected");
+      console.error('Invalid items:', invalidItems);
+      return false;
+    }
+
+    return true;
+  };
+
   const generateScheduleYAML = () => {
+    if (!validateScheduleData()) {
+      return null;
+    }
+
     const scheduleData = {
       schedule: {
         created_at: new Date().toISOString(),
-        venue: "My Venue",
+        venue: sanitizeForYaml("My Venue"),
+        version: "1.0",
         week_schedule: days.reduce((acc, day) => {
           const daySchedule = schedule
             .filter(item => item.day === day)
             .sort((a, b) => a.hour - b.hour)
             .map(item => {
               const playlist = getPlaylistById(item.playlist_id);
+              const playlistName = sanitizeForYaml(playlist?.name || 'Unknown Playlist');
+              
+              // Validate duration is reasonable
+              const safeDuration = Math.max(1, Math.min(1440, item.duration));
+              
               return {
                 time: `${item.hour.toString().padStart(2, '0')}:00`,
-                playlist: playlist?.name || 'Unknown Playlist',
-                duration_minutes: item.duration,
-                duration_hours: Math.floor(item.duration / 60),
-                duration_remaining_minutes: item.duration % 60
+                playlist: playlistName,
+                duration_minutes: safeDuration,
+                duration_hours: Math.floor(safeDuration / 60),
+                duration_remaining_minutes: safeDuration % 60
               };
             });
           
@@ -478,119 +549,154 @@ export const WeeklyScheduler = () => {
       }
     };
     
-    return yaml.dump(scheduleData, { 
-      indent: 2,
-      lineWidth: 120,
-      noRefs: true 
-    });
+    try {
+      return yaml.dump(scheduleData, { 
+        indent: 2,
+        lineWidth: 120,
+        noRefs: true,
+        quotingType: '"',
+        forceQuotes: false
+      });
+    } catch (error) {
+      console.error('Error generating YAML:', error);
+      toast.error("Failed to generate YAML content");
+      return null;
+    }
   };
 
   const saveScheduleAsYAML = async () => {
     try {
       const yamlContent = generateScheduleYAML();
+      if (!yamlContent) {
+        return;
+      }
+
       const fileName = `my-schedule.yml`;
       
-      // Create a Blob and upload to storage
-      const yamlBlob = new Blob([yamlContent], { type: 'text/yaml' });
+      // Create a Blob with proper content type
+      const yamlBlob = new Blob([yamlContent], { 
+        type: 'application/x-yaml'
+      });
       
+      console.log('Uploading to storage...', { fileName, size: yamlBlob.size });
+
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('schedules')
         .upload(fileName, yamlBlob, {
           upsert: true,
-          contentType: 'text/yaml'
+          contentType: 'application/x-yaml',
+          cacheControl: '3600'
         });
 
       if (uploadError) {
-        toast.error("Failed to save schedule file");
-        console.error(uploadError);
+        console.error("Storage upload error:", uploadError);
+        toast.error(`Failed to save schedule file: ${uploadError.message}`);
         return;
       }
 
-      // Also save to database for backward compatibility
-      const { data: dbData, error: dbError } = await supabase
-        .from('saved_schedules')
-        .upsert({
-          name: 'My Schedule',
-          yaml_content: yamlContent
-        }, {
-          onConflict: 'name'
-        })
-        .select()
-        .single();
+      console.log('Upload successful:', uploadData);
 
-      if (dbError) {
-        console.error("Database save error:", dbError);
-        // Don't fail the whole operation if database save fails
+      // Also save to database for backward compatibility and backup
+      try {
+        const { data: dbData, error: dbError } = await supabase
+          .from('saved_schedules')
+          .upsert({
+            name: 'My Schedule',
+            yaml_content: yamlContent
+          }, {
+            onConflict: 'name'
+          })
+          .select()
+          .single();
+
+        if (dbError) {
+          console.warn("Database backup save failed:", dbError);
+          // Don't fail the whole operation for this
+        }
+      } catch (dbErr) {
+        console.warn("Database backup error:", dbErr);
       }
 
-      // Update the download URL
+      // Get the public URL
       const { data: urlData } = await supabase.storage
         .from('schedules')
         .getPublicUrl(fileName);
       
       if (urlData?.publicUrl) {
         setDownloadUrl(urlData.publicUrl);
+        console.log('Download URL set:', urlData.publicUrl);
       }
 
       toast.success("Schedule saved successfully!");
     } catch (err) {
-      console.error("Error saving schedule:", err);
-      toast.error("Failed to save schedule");
+      console.error("Unexpected error saving schedule:", err);
+      toast.error("Failed to save schedule due to unexpected error");
     }
   };
 
   const downloadSchedule = async () => {
-    if (downloadUrl) {
-      // If we have a direct URL, use it
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `music-schedule-${new Date().toISOString().split('T')[0]}.yml`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast.success("Schedule downloaded successfully!");
-      return;
-    }
-
-    // Fallback to database method
     try {
-      const { data, error } = await supabase
-        .from('saved_schedules')
-        .select('yaml_content')
-        .eq('name', 'My Schedule')
-        .single();
-
-      if (error || !data) {
-        // If no saved schedule exists, generate from current schedule
-        const yamlContent = generateScheduleYAML();
-        downloadYAMLFile(yamlContent);
-        return;
+      if (downloadUrl) {
+        // Test if the URL is accessible before downloading
+        const response = await fetch(downloadUrl, { method: 'HEAD' });
+        if (response.ok) {
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = `music-schedule-${new Date().toISOString().split('T')[0]}.yml`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          toast.success("Schedule downloaded successfully!");
+          return;
+        }
       }
 
-      downloadYAMLFile(data.yaml_content);
+      // Fallback: generate and download directly
+      const yamlContent = generateScheduleYAML();
+      if (yamlContent) {
+        downloadYAMLFile(yamlContent);
+      } else {
+        toast.error("Failed to generate schedule content");
+      }
     } catch (err) {
       console.error("Error downloading schedule:", err);
-      toast.error("Failed to download schedule");
+      // Fallback to direct generation
+      const yamlContent = generateScheduleYAML();
+      if (yamlContent) {
+        downloadYAMLFile(yamlContent);
+      } else {
+        toast.error("Failed to download schedule");
+      }
     }
   };
 
   const downloadYAMLFile = (yamlContent: string) => {
-    const blob = new Blob([yamlContent], { type: 'text/yaml' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `music-schedule-${new Date().toISOString().split('T')[0]}.yml`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast.success("Schedule downloaded successfully!");
+    try {
+      const blob = new Blob([yamlContent], { type: 'application/x-yaml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `music-schedule-${new Date().toISOString().split('T')[0]}.yml`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Schedule downloaded successfully!");
+    } catch (error) {
+      console.error("Error creating download:", error);
+      toast.error("Failed to create download file");
+    }
   };
 
-  const copyDownloadUrl = () => {
+  const copyDownloadUrl = async () => {
     if (downloadUrl) {
-      navigator.clipboard.writeText(downloadUrl);
-      toast.success("Download URL copied to clipboard!");
+      try {
+        await navigator.clipboard.writeText(downloadUrl);
+        toast.success("Download URL copied to clipboard!");
+      } catch (error) {
+        console.error("Failed to copy to clipboard:", error);
+        toast.error("Failed to copy URL to clipboard");
+      }
     } else {
       toast.error("No download URL available. Please save your schedule first.");
     }
@@ -598,7 +704,7 @@ export const WeeklyScheduler = () => {
 
   const openDownloadUrl = () => {
     if (downloadUrl) {
-      window.open(downloadUrl, '_blank');
+      window.open(downloadUrl, '_blank', 'noopener,noreferrer');
     } else {
       toast.error("No download URL available. Please save your schedule first.");
     }
@@ -683,6 +789,7 @@ export const WeeklyScheduler = () => {
                   size="sm"
                   onClick={copyDownloadUrl}
                   className="text-green-700 border-green-300 hover:bg-green-100"
+                  title="Copy URL to clipboard"
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
@@ -691,8 +798,18 @@ export const WeeklyScheduler = () => {
                   size="sm"
                   onClick={openDownloadUrl}
                   className="text-green-700 border-green-300 hover:bg-green-100"
+                  title="Open URL in new tab"
                 >
                   <ExternalLink className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={downloadSchedule}
+                  className="text-green-700 border-green-300 hover:bg-green-100"
+                  title="Download file directly"
+                >
+                  <Download className="w-4 h-4" />
                 </Button>
               </div>
             </div>
