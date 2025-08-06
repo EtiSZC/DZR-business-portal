@@ -27,8 +27,17 @@ serve(async (req) => {
 
     console.log(`Fetching Deezer playlist: ${playlistId}`);
 
+    const appId = Deno.env.get('DEEZER_APP_ID');
+    const secret = Deezer.env.get('DEEZER_SECRET');
+    
+    // Build URL with app_id if available
+    const baseUrl = `https://api.deezer.com/playlist/${playlistId}`;
+    const url = appId ? `${baseUrl}?app_id=${appId}` : baseUrl;
+    
+    console.log(`Making request to: ${url}`);
+
     // Make request to Deezer API
-    const deezerResponse = await fetch(`https://api.deezer.com/playlist/${playlistId}`);
+    const deezerResponse = await fetch(url);
     
     if (!deezerResponse.ok) {
       console.error(`Deezer API error: ${deezerResponse.status}`);
@@ -45,14 +54,32 @@ serve(async (req) => {
 
     const playlistData = await deezerResponse.json();
     
-    // Filter tracks that have preview URLs
+    console.log(`Raw playlist data structure:`, JSON.stringify({
+      id: playlistData.id,
+      title: playlistData.title,
+      tracksCount: playlistData.tracks?.data?.length || 0,
+      sampleTrack: playlistData.tracks?.data?.[0] || null
+    }));
+    
+    // Don't filter tracks initially - let's see what we get
     if (playlistData.tracks && playlistData.tracks.data) {
-      playlistData.tracks.data = playlistData.tracks.data.filter(
-        (track: any) => track.preview
+      const totalTracks = playlistData.tracks.data.length;
+      const tracksWithPreviews = playlistData.tracks.data.filter(
+        (track: any) => track.preview && track.preview !== ""
       );
+      
+      console.log(`Total tracks: ${totalTracks}, Tracks with previews: ${tracksWithPreviews.length}`);
+      
+      // Only filter if we have some tracks with previews, otherwise return all
+      if (tracksWithPreviews.length > 0) {
+        playlistData.tracks.data = tracksWithPreviews;
+        console.log(`Filtered to ${tracksWithPreviews.length} playable tracks`);
+      } else {
+        console.log(`No tracks with previews found, returning all ${totalTracks} tracks`);
+      }
     }
 
-    console.log(`Successfully fetched playlist with ${playlistData.tracks?.data?.length || 0} playable tracks`);
+    console.log(`Successfully processed playlist with ${playlistData.tracks?.data?.length || 0} tracks`);
 
     return new Response(
       JSON.stringify(playlistData), 
@@ -64,7 +91,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in deezer-proxy function:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }), 
+      JSON.stringify({ error: 'Internal server error', details: error.message }), 
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

@@ -42,12 +42,27 @@ export class DeezerService {
         throw new Error(`Failed to fetch playlist: ${error.message}`);
       }
 
-      if (!data || !data.tracks || !data.tracks.data) {
-        throw new Error('Invalid playlist data received');
+      console.log('Edge function response:', data);
+
+      if (!data) {
+        throw new Error('No data received from edge function');
+      }
+
+      if (data.error) {
+        throw new Error(`Deezer API error: ${data.error}`);
+      }
+
+      if (!data.tracks || !Array.isArray(data.tracks.data)) {
+        console.error('Invalid playlist structure:', data);
+        throw new Error('Invalid playlist data structure received');
       }
 
       const tracks = data.tracks.data;
-      console.log(`Successfully loaded ${tracks.length} tracks with previews`);
+      console.log(`Successfully loaded playlist with ${tracks.length} tracks`);
+      
+      if (tracks.length === 0) {
+        throw new Error('No tracks found in this playlist');
+      }
       
       return tracks;
     } catch (error) {
