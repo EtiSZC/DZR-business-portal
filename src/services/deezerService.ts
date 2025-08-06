@@ -1,4 +1,6 @@
 
+import { supabase } from '@/integrations/supabase/client';
+
 interface DeezerTrack {
   id: number;
   title: string;
@@ -21,8 +23,6 @@ interface DeezerPlaylist {
 }
 
 export class DeezerService {
-  private static readonly BASE_URL = 'https://api.deezer.com';
-
   static extractPlaylistId(deezerUrl: string): string | null {
     const match = deezerUrl.match(/playlist\/(\d+)/);
     return match ? match[1] : null;
@@ -30,13 +30,26 @@ export class DeezerService {
 
   static async fetchPlaylistTracks(playlistId: string): Promise<DeezerTrack[]> {
     try {
-      const response = await fetch(`${this.BASE_URL}/playlist/${playlistId}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch playlist: ${response.status}`);
-      }
+      console.log(`Fetching playlist tracks for ID: ${playlistId}`);
       
-      const playlist: DeezerPlaylist = await response.json();
-      return playlist.tracks.data.filter(track => track.preview); // Only return tracks with preview URLs
+      // Use our edge function to proxy the Deezer API call
+      const { data, error } = await supabase.functions.invoke('deezer-proxy', {
+        body: { playlistId }
+      });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(`Failed to fetch playlist: ${error.message}`);
+      }
+
+      if (!data || !data.tracks || !data.tracks.data) {
+        throw new Error('Invalid playlist data received');
+      }
+
+      const tracks = data.tracks.data;
+      console.log(`Successfully loaded ${tracks.length} tracks with previews`);
+      
+      return tracks;
     } catch (error) {
       console.error('Error fetching playlist from Deezer:', error);
       throw error;
