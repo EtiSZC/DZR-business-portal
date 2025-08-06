@@ -28,7 +28,7 @@ serve(async (req) => {
     console.log(`Fetching Deezer playlist: ${playlistId}`);
 
     const appId = Deno.env.get('DEEZER_APP_ID');
-    const secret = Deezer.env.get('DEEZER_SECRET');
+    const secret = Deno.env.get('DEEZER_SECRET');
     
     // Build URL with app_id if available
     const baseUrl = `https://api.deezer.com/playlist/${playlistId}`;
