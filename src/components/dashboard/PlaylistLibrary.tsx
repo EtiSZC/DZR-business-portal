@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, Music, Play, Search, Filter, Heart, MoreVertical } from "lucide-react";
+import { Clock, Music, Play, Search, Filter, Heart, MoreVertical, Pause } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 import { useMusicPlayer } from "@/hooks/useMusicPlayer";
@@ -49,12 +50,19 @@ export const PlaylistLibrary = () => {
     setPlaylists(data || []);
   };
 
-  const { loadAndPlayPlaylist, isLoading: playerLoading } = useMusicPlayer();
+  const { 
+    loadAndPlayPlaylist, 
+    isLoading: playerLoading, 
+    isPlaying, 
+    currentTrack, 
+    pause, 
+    play 
+  } = useMusicPlayer();
 
   const handlePlayPlaylist = async (playlist: Playlist) => {
     if (playlist.deezer_url) {
       try {
-        await loadAndPlayPlaylist(playlist.deezer_url);
+        await loadAndPlayPlaylist(playlist.deezer_url, playlist.name);
         toast.success(`Playing: ${playlist.name}`);
       } catch (error) {
         toast.error('Failed to play playlist');
@@ -65,9 +73,20 @@ export const PlaylistLibrary = () => {
     }
   };
 
+  const handlePauseResume = () => {
+    if (isPlaying) {
+      pause();
+    } else {
+      play();
+    }
+  };
+
+  const isCurrentPlaylist = (playlist: Playlist) => {
+    return currentTrack?.playlist === playlist.name;
+  };
+
   const filteredPlaylists = playlists.filter(playlist => {
     const matchesSearch = playlist.name.toLowerCase().includes(searchTerm.toLowerCase());
-    // For now, just filter by search term since database playlists don't have category/mood
     return matchesSearch;
   });
 
@@ -134,10 +153,47 @@ export const PlaylistLibrary = () => {
         {filteredPlaylists.length} playlist{filteredPlaylists.length !== 1 ? 's' : ''} found
       </div>
 
+      {/* Current Playing Track */}
+      {currentTrack && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Now Playing</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{currentTrack.title}</p>
+                <p className="text-sm text-muted-foreground truncate">{currentTrack.artist}</p>
+                <p className="text-xs text-muted-foreground">{currentTrack.playlist}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-muted-foreground">
+                  {currentTrack.currentTime} / {currentTrack.duration}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePauseResume}
+                  disabled={playerLoading}
+                >
+                  {isPlaying ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4 fill-current" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Playlist Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPlaylists.map((playlist) => (
-          <Card key={playlist.id} className="group hover:shadow-lg transition-all duration-300">
+          <Card key={playlist.id} className={`group hover:shadow-lg transition-all duration-300 ${
+            isCurrentPlaylist(playlist) ? 'ring-2 ring-primary' : ''
+          }`}>
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
@@ -164,7 +220,7 @@ export const PlaylistLibrary = () => {
             </CardHeader>
             
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">Music playlist for your venue</p>
+              <p className="text-sm text-muted-foreground">30-second preview from Deezer</p>
               
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <div className="flex items-center space-x-1">
@@ -173,7 +229,7 @@ export const PlaylistLibrary = () => {
                 </div>
                 <div className="flex items-center space-x-1">
                   <Music className="h-4 w-4" />
-                  <span>Mixed tracks</span>
+                  <span>Preview tracks</span>
                 </div>
               </div>
               
@@ -199,8 +255,13 @@ export const PlaylistLibrary = () => {
                   onClick={() => handlePlayPlaylist(playlist)}
                   disabled={playerLoading}
                 >
-                  <Play className="h-4 w-4 mr-2 fill-current" />
-                  {playerLoading ? 'Loading...' : 'Play'}
+                  {isCurrentPlaylist(playlist) && isPlaying ? (
+                    <Pause className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Play className="h-4 w-4 mr-2 fill-current" />
+                  )}
+                  {playerLoading ? 'Loading...' : 
+                   isCurrentPlaylist(playlist) && isPlaying ? 'Pause' : 'Play'}
                 </Button>
               </div>
             </CardContent>

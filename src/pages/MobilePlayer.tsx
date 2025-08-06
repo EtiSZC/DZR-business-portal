@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 import { ScheduleService } from '@/services/scheduleService';
 
-declare global {
-  interface Window {
-    DZ: any;
-  }
-}
-
 export default function MobilePlayer() {
   const { currentSchedule, nextPlaylist, isLoading } = useMobileSchedule();
   const { 
@@ -25,6 +20,8 @@ export default function MobilePlayer() {
     volume,
     isLoading: playerLoading,
     isAuthenticated,
+    currentPlaylist,
+    currentTrackIndex,
     play, 
     pause, 
     skipForward, 
@@ -58,15 +55,13 @@ export default function MobilePlayer() {
     };
   }, [loadAndPlayPlaylist]);
 
-  // Music auto-start disabled
-
   const handleStartPlaying = async () => {
     try {
       if (!isAuthenticated) {
         setIsAuthenticating(true);
         const authSuccess = await authenticate();
         if (!authSuccess) {
-          alert('Failed to authenticate with Deezer. Please try again.');
+          alert('Failed to authenticate. Please try again.');
           return;
         }
       }
@@ -83,7 +78,7 @@ export default function MobilePlayer() {
             .single();
             
           if (playlists?.deezer_url) {
-            await loadAndPlayPlaylist(playlists.deezer_url);
+            await loadAndPlayPlaylist(playlists.deezer_url, activeItem.playlist);
           }
         }
       }
@@ -105,11 +100,29 @@ export default function MobilePlayer() {
         <CardContent className="space-y-4">
           {currentTrack ? (
             <>
+              {/* Album Cover */}
+              {currentTrack.albumCover && (
+                <div className="flex justify-center">
+                  <img 
+                    src={currentTrack.albumCover} 
+                    alt={currentTrack.title}
+                    className="w-48 h-48 rounded-lg object-cover shadow-lg"
+                  />
+                </div>
+              )}
+              
               <div className="text-center space-y-2">
                 <h3 className="text-xl font-bold">{currentTrack.title}</h3>
                 <p className="text-muted-foreground">{currentTrack.artist}</p>
                 <Badge variant="secondary">{currentTrack.playlist}</Badge>
               </div>
+              
+              {/* Track Info */}
+              {currentPlaylist.length > 0 && (
+                <div className="text-center text-sm text-muted-foreground">
+                  Track {currentTrackIndex + 1} of {currentPlaylist.length}
+                </div>
+              )}
               
               {/* Progress Bar */}
               <div className="space-y-2">
@@ -127,13 +140,19 @@ export default function MobilePlayer() {
               
               {/* Player Controls */}
               <div className="flex justify-center items-center space-x-4">
-                <Button size="icon" variant="ghost" onClick={skipBack}>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={skipBack}
+                  disabled={currentTrackIndex === 0}
+                >
                   <SkipBack className="h-6 w-6" />
                 </Button>
                 <Button 
                   size="icon" 
                   className="h-12 w-12"
                   onClick={isPlaying ? pause : play}
+                  disabled={playerLoading}
                 >
                   {isPlaying ? (
                     <Pause className="h-6 w-6" />
@@ -141,7 +160,12 @@ export default function MobilePlayer() {
                     <Play className="h-6 w-6" />
                   )}
                 </Button>
-                <Button size="icon" variant="ghost" onClick={skipForward}>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={skipForward}
+                  disabled={currentTrackIndex >= currentPlaylist.length - 1}
+                >
                   <SkipForward className="h-6 w-6" />
                 </Button>
               </div>
