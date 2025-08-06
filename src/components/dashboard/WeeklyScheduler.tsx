@@ -7,6 +7,7 @@ import { Clock, Plus, X, Copy, ExternalLink, Download } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import * as yaml from 'js-yaml';
+import { DeezerService } from "@/services/deezerService";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -533,12 +534,20 @@ export const WeeklyScheduler = () => {
               const playlist = getPlaylistById(item.playlist_id);
               const playlistName = sanitizeForYaml(playlist?.name || 'Unknown Playlist');
               
+              // Extract Deezer playlist ID from the playlist URL
+              let deezerPlaylistId = null;
+              if (playlist?.deezer_url) {
+                deezerPlaylistId = DeezerService.extractPlaylistId(playlist.deezer_url);
+              }
+              
               // Validate duration is reasonable
               const safeDuration = Math.max(1, Math.min(1440, item.duration));
               
               console.log('Processing schedule item:', {
                 playlist_id: item.playlist_id,
                 playlist_name: playlistName,
+                deezer_url: playlist?.deezer_url,
+                deezer_playlist_id: deezerPlaylistId,
                 time: item.hour,
                 duration: safeDuration
               });
@@ -546,7 +555,8 @@ export const WeeklyScheduler = () => {
               return {
                 time: `${item.hour.toString().padStart(2, '0')}:00`,
                 playlist: playlistName,
-                playlist_id: item.playlist_id,
+                playlist_id: deezerPlaylistId || item.playlist_id, // Use Deezer ID if available, fallback to database ID
+                deezer_playlist_id: deezerPlaylistId, // Explicitly include Deezer playlist ID
                 duration_minutes: safeDuration,
                 duration_hours: Math.floor(safeDuration / 60),
                 duration_remaining_minutes: safeDuration % 60
