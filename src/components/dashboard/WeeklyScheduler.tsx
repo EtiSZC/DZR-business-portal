@@ -537,6 +537,7 @@ export const WeeklyScheduler = () => {
               return {
                 time: `${item.hour.toString().padStart(2, '0')}:00`,
                 playlist: playlistName,
+                playlist_id: item.playlist_id,
                 duration_minutes: safeDuration,
                 duration_hours: Math.floor(safeDuration / 60),
                 duration_remaining_minutes: safeDuration % 60
