@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { DeezerService } from '@/services/deezerService';
 
@@ -113,7 +112,7 @@ export function useMusicPlayer() {
 
     audioRef.current.addEventListener('ended', handleTrackEnd);
     audioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
-  }, [volume, currentTrackIndex, currentPlaylist.length]);
+  }, [volume, currentTrackIndex, currentPlaylist.length, stopProgressTracking]);
 
   const authenticate = useCallback(async (): Promise<boolean> => {
     setIsLoading(true);
