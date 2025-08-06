@@ -518,6 +518,8 @@ export const WeeklyScheduler = () => {
       return null;
     }
 
+    console.log('Generating YAML for schedule items:', schedule);
+
     const scheduleData = {
       schedule: {
         created_at: new Date().toISOString(),
@@ -533,6 +535,13 @@ export const WeeklyScheduler = () => {
               
               // Validate duration is reasonable
               const safeDuration = Math.max(1, Math.min(1440, item.duration));
+              
+              console.log('Processing schedule item:', {
+                playlist_id: item.playlist_id,
+                playlist_name: playlistName,
+                time: item.hour,
+                duration: safeDuration
+              });
               
               return {
                 time: `${item.hour.toString().padStart(2, '0')}:00`,
@@ -550,14 +559,19 @@ export const WeeklyScheduler = () => {
       }
     };
     
+    console.log('Final schedule data before YAML conversion:', JSON.stringify(scheduleData, null, 2));
+    
     try {
-      return yaml.dump(scheduleData, { 
+      const yamlResult = yaml.dump(scheduleData, { 
         indent: 2,
         lineWidth: 120,
         noRefs: true,
         quotingType: '"',
         forceQuotes: false
       });
+      
+      console.log('Generated YAML:', yamlResult);
+      return yamlResult;
     } catch (error) {
       console.error('Error generating YAML:', error);
       toast.error("Failed to generate YAML content");
