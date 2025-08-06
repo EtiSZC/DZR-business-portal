@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { DeezerService } from '@/services/deezerService';
 
@@ -76,15 +77,7 @@ export function useMusicPlayer() {
   }, []);
 
   const setupAudioElement = useCallback((track: DeezerTrack, playlistName: string) => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.removeEventListener('ended', handleTrackEnd);
-      audioRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
-    }
-
-    audioRef.current = new Audio(track.preview);
-    audioRef.current.volume = volume / 100;
-
+    // Define event handlers first
     const handleTrackEnd = () => {
       setIsPlaying(false);
       stopProgressTracking();
@@ -109,6 +102,15 @@ export function useMusicPlayer() {
         });
       }
     };
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeEventListener('ended', handleTrackEnd);
+      audioRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    }
+
+    audioRef.current = new Audio(track.preview);
+    audioRef.current.volume = volume / 100;
 
     audioRef.current.addEventListener('ended', handleTrackEnd);
     audioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
