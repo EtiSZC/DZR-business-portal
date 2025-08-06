@@ -33,6 +33,7 @@ interface Playlist {
   name: string;
   duration: number;
   color: string;
+  deezer_url?: string;
 }
 
 interface ScheduledItem {
