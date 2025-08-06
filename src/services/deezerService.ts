@@ -49,7 +49,8 @@ export class DeezerService {
       }
 
       if (data.error) {
-        throw new Error(`Deezer API error: ${data.error}`);
+        console.error('Deezer API error:', data.error);
+        throw new Error(`${data.error}`);
       }
 
       if (!data.tracks || !Array.isArray(data.tracks.data)) {

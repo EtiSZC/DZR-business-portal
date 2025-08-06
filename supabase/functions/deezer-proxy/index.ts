@@ -27,23 +27,62 @@ serve(async (req) => {
 
     console.log(`Fetching Deezer playlist: ${playlistId}`);
 
-    const appId = Deno.env.get('DEEZER_APP_ID');
-    const secret = Deno.env.get('DEEZER_SECRET');
-    
-    // Build URL with app_id if available
-    const baseUrl = `https://api.deezer.com/playlist/${playlistId}`;
-    const url = appId ? `${baseUrl}?app_id=${appId}` : baseUrl;
+    // Try to fetch without app_id first (public playlists)
+    let url = `https://api.deezer.com/playlist/${playlistId}`;
     
     console.log(`Making request to: ${url}`);
 
     // Make request to Deezer API
-    const deezerResponse = await fetch(url);
+    let deezerResponse = await fetch(url);
+    let playlistData = await deezerResponse.json();
     
-    if (!deezerResponse.ok) {
-      console.error(`Deezer API error: ${deezerResponse.status}`);
+    // If we get an OAuth error, the playlist might be private or require authentication
+    if (playlistData.error && playlistData.error.type === 'OAuthException') {
+      console.log('Got OAuth error, trying with app_id...');
+      
+      const appId = Deno.env.get('DEEZER_APP_ID');
+      if (appId) {
+        url = `${url}?app_id=${appId}`;
+        console.log(`Retrying with app_id: ${url}`);
+        
+        deezerResponse = await fetch(url);
+        playlistData = await deezerResponse.json();
+      }
+    }
+    
+    // If still getting error after trying with app_id
+    if (playlistData.error) {
+      console.error(`Deezer API error:`, playlistData.error);
+      
+      // Handle specific error types
+      if (playlistData.error.type === 'OAuthException') {
+        return new Response(
+          JSON.stringify({ 
+            error: 'This playlist is private or requires authentication. Please try with a public playlist.' 
+          }), 
+          { 
+            status: 403, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ 
-          error: `Failed to fetch playlist: ${deezerResponse.status}` 
+          error: `Deezer API error: ${playlistData.error.message || JSON.stringify(playlistData.error)}` 
+        }), 
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    if (!deezerResponse.ok) {
+      console.error(`Deezer API HTTP error: ${deezerResponse.status}`);
+      return new Response(
+        JSON.stringify({ 
+          error: `Failed to fetch playlist: HTTP ${deezerResponse.status}` 
         }), 
         { 
           status: deezerResponse.status, 
@@ -51,8 +90,6 @@ serve(async (req) => {
         }
       );
     }
-
-    const playlistData = await deezerResponse.json();
     
     console.log(`Raw playlist data structure:`, JSON.stringify({
       id: playlistData.id,
@@ -61,22 +98,33 @@ serve(async (req) => {
       sampleTrack: playlistData.tracks?.data?.[0] || null
     }));
     
-    // Don't filter tracks initially - let's see what we get
-    if (playlistData.tracks && playlistData.tracks.data) {
-      const totalTracks = playlistData.tracks.data.length;
-      const tracksWithPreviews = playlistData.tracks.data.filter(
-        (track: any) => track.preview && track.preview !== ""
+    // Check if we have tracks data
+    if (!playlistData.tracks || !Array.isArray(playlistData.tracks.data)) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid playlist structure - no tracks found' 
+        }), 
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       );
-      
-      console.log(`Total tracks: ${totalTracks}, Tracks with previews: ${tracksWithPreviews.length}`);
-      
-      // Only filter if we have some tracks with previews, otherwise return all
-      if (tracksWithPreviews.length > 0) {
-        playlistData.tracks.data = tracksWithPreviews;
-        console.log(`Filtered to ${tracksWithPreviews.length} playable tracks`);
-      } else {
-        console.log(`No tracks with previews found, returning all ${totalTracks} tracks`);
-      }
+    }
+    
+    // Filter tracks with previews if we have some, otherwise return all
+    const totalTracks = playlistData.tracks.data.length;
+    const tracksWithPreviews = playlistData.tracks.data.filter(
+      (track: any) => track.preview && track.preview !== ""
+    );
+    
+    console.log(`Total tracks: ${totalTracks}, Tracks with previews: ${tracksWithPreviews.length}`);
+    
+    // Only filter if we have some tracks with previews, otherwise return all
+    if (tracksWithPreviews.length > 0) {
+      playlistData.tracks.data = tracksWithPreviews;
+      console.log(`Filtered to ${tracksWithPreviews.length} playable tracks`);
+    } else {
+      console.log(`No tracks with previews found, returning all ${totalTracks} tracks`);
     }
 
     console.log(`Successfully processed playlist with ${playlistData.tracks?.data?.length || 0} tracks`);
