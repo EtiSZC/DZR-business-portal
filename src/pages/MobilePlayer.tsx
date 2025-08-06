@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Play, Pause, SkipForward, SkipBack, Volume2 } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, Square } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { useMobileSchedule } from '@/hooks/useMobileSchedule';
 import { useMusicPlayer } from '@/hooks/useMusicPlayer';
@@ -23,7 +22,8 @@ export default function MobilePlayer() {
     currentPlaylist,
     currentTrackIndex,
     play, 
-    pause, 
+    pause,
+    stop,
     skipForward, 
     skipBack,
     setVolume,
@@ -159,6 +159,14 @@ export default function MobilePlayer() {
                   ) : (
                     <Play className="h-6 w-6" />
                   )}
+                </Button>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={stop}
+                  disabled={playerLoading}
+                >
+                  <Square className="h-6 w-6" />
                 </Button>
                 <Button 
                   size="icon" 

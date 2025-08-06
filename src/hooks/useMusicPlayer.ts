@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { DeezerService } from '@/services/deezerService';
 
@@ -145,6 +144,19 @@ export function useMusicPlayer() {
     }
   }, [stopProgressTracking]);
 
+  const stop = useCallback(async () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
+      setProgress(0);
+      stopProgressTracking();
+      setCurrentTrack(null);
+      setCurrentPlaylist([]);
+      setCurrentTrackIndex(0);
+    }
+  }, [stopProgressTracking]);
+
   const skipForward = useCallback(async () => {
     if (currentPlaylist.length > 0 && currentTrackIndex < currentPlaylist.length - 1) {
       const nextIndex = currentTrackIndex + 1;
@@ -211,6 +223,7 @@ export function useMusicPlayer() {
 
   const playTrack = useCallback(() => play(), [play]);
   const pauseTrack = useCallback(() => pause(), [pause]);
+  const stopTrack = useCallback(() => stop(), [stop]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -234,6 +247,7 @@ export function useMusicPlayer() {
     currentTrackIndex,
     play: playTrack,
     pause: pauseTrack,
+    stop: stopTrack,
     skipForward,
     skipBack,
     setVolume: handleSetVolume,

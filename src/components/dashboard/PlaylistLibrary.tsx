@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, Music, Play, Search, Filter, Heart, MoreVertical, Pause } from "lucide-react";
+import { Clock, Music, Play, Search, Filter, Heart, MoreVertical, Pause, Square } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 import { useMusicPlayer } from "@/hooks/useMusicPlayer";
@@ -56,7 +55,8 @@ export const PlaylistLibrary = () => {
     isPlaying, 
     currentTrack, 
     pause, 
-    play 
+    play,
+    stop 
   } = useMusicPlayer();
 
   const handlePlayPlaylist = async (playlist: Playlist) => {
@@ -79,6 +79,10 @@ export const PlaylistLibrary = () => {
     } else {
       play();
     }
+  };
+
+  const handleStop = () => {
+    stop();
   };
 
   const isCurrentPlaylist = (playlist: Playlist) => {
@@ -181,6 +185,14 @@ export const PlaylistLibrary = () => {
                   ) : (
                     <Play className="h-4 w-4 fill-current" />
                   )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleStop}
+                  disabled={playerLoading}
+                >
+                  <Square className="h-4 w-4" />
                 </Button>
               </div>
             </div>
