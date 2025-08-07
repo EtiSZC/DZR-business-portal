@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      payment_methods: {
+        Row: {
+          card_brand: string
+          card_holder_name: string
+          card_number_last_four: string
+          created_at: string
+          expiry_month: number
+          expiry_year: number
+          id: string
+          is_default: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_brand: string
+          card_holder_name: string
+          card_number_last_four: string
+          created_at?: string
+          expiry_month: number
+          expiry_year: number
+          id?: string
+          is_default?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_brand?: string
+          card_holder_name?: string
+          card_number_last_four?: string
+          created_at?: string
+          expiry_month?: number
+          expiry_year?: number
+          id?: string
+          is_default?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       playlists: {
         Row: {
           color: string

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User, Settings, Building, MapPin } from "lucide-react";
+import { User, Settings, Building } from "lucide-react";
+import { PaymentMethods } from "@/components/account/PaymentMethods";
 
 interface UserProfile {
   first_name: string | null;
@@ -220,6 +221,9 @@ export default function Account() {
               </form>
             </CardContent>
           </Card>
+
+          {/* Payment Methods */}
+          <PaymentMethods />
         </div>
       </div>
     </div>
