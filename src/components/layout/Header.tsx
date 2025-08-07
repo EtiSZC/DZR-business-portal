@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, User, LogOut } from "lucide-react";
+import { Menu, User, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import logoSvg from "@/assets/deezer-logo-2023.svg";
@@ -103,7 +103,7 @@ export const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2">
                   <User className="h-4 w-4" />
-                  <span className="text-sm">Account</span>
+                  <span className="text-sm">My Account</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -111,6 +111,12 @@ export const Header = () => {
                   {user.email}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/account" className="w-full cursor-pointer">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Account Settings
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/dashboard" className="w-full cursor-pointer">
                     Dashboard
@@ -165,7 +171,13 @@ export const Header = () => {
                       {user.email}
                     </div>
                     <Button variant="outline" asChild>
-                      <Link to="/dashboard">Dashboard</Link>
+                      <Link to="/account" onClick={() => setIsOpen(false)}>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Account Settings
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link to="/dashboard" onClick={() => setIsOpen(false)}>Dashboard</Link>
                     </Button>
                     <Button variant="outline" onClick={handleSignOut} className="text-red-600">
                       <LogOut className="h-4 w-4 mr-2" />

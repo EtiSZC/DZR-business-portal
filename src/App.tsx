@@ -16,6 +16,7 @@ import MobilePlayer from "./pages/MobilePlayer";
 import MobileSettings from "./pages/MobileSettings";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import { MobileLayout } from "./components/layout/MobileLayout";
 import { useIsMobile } from "./hooks/use-mobile";
@@ -61,6 +62,7 @@ const AppContent = ({ isMobile, mobileRoutes }: { isMobile: boolean; mobileRoute
         <Route path="/mobile-settings" element={<MobileSettings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/account" element={<Account />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
