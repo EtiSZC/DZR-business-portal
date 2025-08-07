@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Music, Play, Mail, Lock, Eye, EyeOff, User, Building } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const venueTypes = [
   "Coffee Shop",
-  "Restaurant",
+  "Restaurant", 
   "Bar/Pub",
   "Retail Store",
   "Hotel/Hospitality",
@@ -22,6 +23,8 @@ const venueTypes = [
 ];
 
 export default function Signup() {
+  const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -51,12 +54,29 @@ export default function Signup() {
     
     setIsLoading(true);
     
-    // Simulate signup process
-    setTimeout(() => {
+    try {
+      const { error } = await signUp(formData.email, formData.password, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        businessName: formData.businessName,
+        venueType: formData.venueType,
+      });
+
+      if (error) {
+        if (error.message.includes('User already registered')) {
+          toast.error("An account with this email already exists. Please sign in instead.");
+        } else {
+          toast.error(error.message || "Failed to create account");
+        }
+      } else {
+        toast.success("Account created successfully! Please check your email to verify your account.");
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
-      toast.success("Account created successfully! Welcome to Deezer Business!");
-      // In a real app, you would handle registration here
-    }, 2000);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {

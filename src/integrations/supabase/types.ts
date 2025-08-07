@@ -44,6 +44,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          business_name: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+          venue_type: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          created_at?: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string
+          venue_type?: string | null
+        }
+        Update: {
+          business_name?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+          venue_type?: string | null
+        }
+        Relationships: []
+      }
       saved_schedules: {
         Row: {
           created_at: string
